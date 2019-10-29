@@ -1,0 +1,40 @@
+<div class="ms-navigation__content" *ngIf="processing">
+  <div class="lds-spinner"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+  <h1 class="ms-fontSize-xl ms-fontWeight-light" style="text-align: center;">{{loadingText}}</h1>
+</div>
+<div class="container" *ngIf="!processing">
+  <div class="row">
+    <div class="col-md-8 mx-auto">
+      <form autocomplete="off" novalidate [formGroup]="reactiveForm" (ngSubmit)="authorize($event)">
+        <p class="text-muted">Sign In to your account</p>
+        <div class="input-group mb-3">
+          <div class="input-group-prepend">
+            <span class="input-group-text"><i class="icon-user"></i></span>
+          </div>
+          <input type="text" class="form-control" required formControlName="username">
+        </div>
+        <div class="input-group mb-4">
+          <div class="input-group-prepend">
+            <span class="input-group-text"><i class="icon-lock"></i></span>
+          </div>
+          <input type="password" class="form-control" required formControlName="password">
+        </div>
+        <div class="form-check mb-4">
+            <input class="form-check-input" type="checkbox" formControlName="isRemember">
+            <label class="form-check-label" for="defaultCheck1">
+              Remember Me!
+            </label>
+        </div>
+        <app-alert [dismissOnTimeout]="60000" [isOpen]="isError" (Closed)="alertClosed()">
+            <strong>Error:</strong>
+            {{errorMessage}}
+        </app-alert>
+        <div class="row">
+          <div class="col-6">
+            <button class="btn btn-primary px-4" type="submit" [disabled]="reactiveForm.invalid">Login</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

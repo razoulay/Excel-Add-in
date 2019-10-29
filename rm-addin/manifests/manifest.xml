@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?><OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0" xmlns:ov="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="TaskPaneApp">
+  <Id>bd69a339-8012-45ef-942e-110ec75bb068</Id>
+  <Version>1.0.0.0</Version>
+  <ProviderName>Raphael Azoulay</ProviderName>
+  <DefaultLocale>en-US</DefaultLocale>
+  <DisplayName DefaultValue="RM Addin"></DisplayName>
+  <Description DefaultValue="RM Addin description."></Description>
+  <IconUrl DefaultValue="https://localhost:4200/assets/icon-32.png"></IconUrl>
+  <HighResolutionIconUrl DefaultValue="https://localhost:4200/assets/hi-res-icon.png"></HighResolutionIconUrl>
+  <SupportUrl DefaultValue="https://localhost:4200/support"></SupportUrl>
+  <Hosts>
+    <Host Name="Workbook"></Host>
+  </Hosts>
+  <Requirements>
+    <Sets DefaultMinVersion="1.1">
+      <Set Name="ExcelApi" MinVersion="1.1"></Set>
+    </Sets>
+  </Requirements>
+  <DefaultSettings>
+    <SourceLocation DefaultValue="https://localhost:4200/app"></SourceLocation>
+  </DefaultSettings>
+  <Permissions>ReadWriteDocument</Permissions>
+  <VersionOverrides xmlns="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="VersionOverridesV1_0">
+    <Hosts>
+      <Host xsi:type="Workbook">
+        <DesktopFormFactor>
+          <GetStarted>
+            <Title resid="get-started"/>
+            <Description resid="description"/>
+            <LearnMoreUrl resid="learn-more-url"/>
+          </GetStarted>
+          <FunctionFile resid="function-file-url"></FunctionFile>
+          <ExtensionPoint xsi:type="PrimaryCommandSurface">
+            <CustomTab id="rmaddin-tab">
+              <Group id="primary-controls">
+                <Label resid="main-group-label"/>
+                <Icon>
+                  <bt:Image size="16" resid="dashboard-icon-16"/>
+                  <bt:Image size="20" resid="dashboard-icon-20"/>
+                  <bt:Image size="32" resid="dashboard-icon-32"/>
+                  <bt:Image size="40" resid="dashboard-icon-40"/>
+                  <bt:Image size="48" resid="dashboard-icon-48"/>
+                  <bt:Image size="64" resid="dashboard-icon-64"/>
+                  <bt:Image size="80" resid="dashboard-icon-80"/>
+                </Icon>
+                <Control xsi:type="Button" id="connect-button">
+                  <Label resid="view-dashboard"/>
+                  <Supertip>
+                    <Title resid="view-dashboard"/>
+                    <Description resid="view-dashboard-supertip"/>
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="dashboard-icon-16"/>
+                    <bt:Image size="20" resid="dashboard-icon-20"/>
+                    <bt:Image size="32" resid="dashboard-icon-32"/>
+                    <bt:Image size="40" resid="dashboard-icon-40"/>
+                    <bt:Image size="48" resid="dashboard-icon-48"/>
+                    <bt:Image size="64" resid="dashboard-icon-64"/>
+                    <bt:Image size="80" resid="dashboard-icon-80"/>
+                  </Icon>
+                  <Action xsi:type="ShowTaskpane">
+                    <TaskpaneId>MainPanel</TaskpaneId>
+                    <SourceLocation resid="app-url"/>
+                  </Action>
+                </Control>
+              </Group>
+              <Label resid="environment-name"/>
+            </CustomTab>
+          </ExtensionPoint>
+        </DesktopFormFactor>
+      </Host>
+    </Hosts>
+    <Resources>
+      <bt:Images>
+        <bt:Image id="dashboard-icon-16" DefaultValue="https://localhost:4200/assets/icon-16.png"/>
+        <bt:Image id="dashboard-icon-20" DefaultValue="https://localhost:4200/assets/icon-20.png"/>
+        <bt:Image id="dashboard-icon-32" DefaultValue="https://localhost:4200/assets/icon-32.png"/>
+        <bt:Image id="dashboard-icon-40" DefaultValue="https://localhost:4200/assets/icon-40.png"/>
+        <bt:Image id="dashboard-icon-48" DefaultValue="https://localhost:4200/assets/icon-48.png"/>
+        <bt:Image id="dashboard-icon-64" DefaultValue="https://localhost:4200/assets/icon-64.png"/>
+        <bt:Image id="dashboard-icon-80" DefaultValue="https://localhost:4200/assets/icon-80.png"/>
+      </bt:Images>
+      <bt:Urls>
+        <bt:Url id="app-url" DefaultValue="https://localhost:4200"/>
+        <bt:Url id="function-file-url" DefaultValue="https://localhost:4200/index.html"/>
+        <bt:Url id="learn-more-url" DefaultValue="https://localhost:4200/learn-more.html"/>
+      </bt:Urls>
+      <bt:ShortStrings>
+        <bt:String id="view-dashboard" DefaultValue="Dashboard"/>
+        <bt:String id="get-started" DefaultValue="Get started with RM Addin "/>
+        <bt:String id="environment-name" DefaultValue="RM Addin"/>
+        <bt:String id="main-group-label" DefaultValue="Main"/>
+      </bt:ShortStrings>
+      <bt:LongStrings>
+        <bt:String id="view-dashboard-supertip" DefaultValue="Click to Launch"/>
+        <bt:String id="description" DefaultValue="RM Addin description"/>
+      </bt:LongStrings>
+    </Resources>
+  </VersionOverrides>
+</OfficeApp>
