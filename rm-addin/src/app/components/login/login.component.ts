@@ -2,6 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 
+import { DataService } from '../../services/data.service';
+import { UserSession } from '../../models/userauth.model';
+
 @Component({
   selector: 'app-login',
   templateUrl: './login.component.html',
@@ -16,14 +19,13 @@ export class LoginComponent implements OnInit {
 
   reactiveForm: FormGroup;
 
-  constructor(private router: Router, private formBuilder: FormBuilder) {
+  constructor(private router: Router, private formBuilder: FormBuilder, private dataService: DataService) {
     console.log('Login component is created');
     this.processing = false;
 
     this.reactiveForm = this.formBuilder.group({
       username: ['', Validators.required],
-      password: ['', Validators.required],
-      isRemember: [false]
+      password: ['', Validators.required]
     });
   }
 
@@ -33,9 +35,14 @@ export class LoginComponent implements OnInit {
 
   authorize(): void {
     if (this.reactiveForm.valid) {
-      console.log('authorize = ' + this.reactiveForm.value.username);
+      console.log(`authorize = ${this.reactiveForm.value.username}`);
       this.loadingText = 'Authentication ...';
       this.processing = true;
+      const userSession = new UserSession();
+      userSession.userToken = 'aaaaaa';
+      this.dataService.setUserSession(userSession);
+
+      this.router.navigate(['dashboard']);
     }
   }
 

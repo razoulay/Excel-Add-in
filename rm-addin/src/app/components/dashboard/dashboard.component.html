@@ -1,0 +1,37 @@
+<div class="ms-navigation__content" *ngIf="processing">
+  <div class="lds-spinner"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+  <h1 class="ms-fontSize-xl ms-fontWeight-light" style="text-align: center;">{{loadingText}}</h1>
+</div>
+<div class="container" *ngIf="!processing">
+  <div class="row">
+    <div class="col-md-8 mx-auto">
+      <form autocomplete="off" novalidate [formGroup]="reactiveForm" (ngSubmit)="authorize($event)">
+        <p class="text-muted">Select your action:</p>
+        <app-alert [dismissOnTimeout]="60000" [isOpen]="isError" (Closed)="alertClosed()">
+            <strong>Error:</strong>
+            {{errorMessage}}
+        </app-alert>
+        <div class="row mb-4">
+          <div class="col-8">
+            <button class="btn btn-primary px-4" type="button">New Trade</button>
+          </div>
+        </div>
+        <div class="row mb-4">
+          <div class="col-8">
+            <button class="btn btn-primary px-4" type="button">Send Trade</button>
+          </div>
+        </div>
+        <div class="row mb-4">
+          <div class="col-8">
+            <button class="btn btn-primary px-4" type="button">RM Orders</button>
+          </div>
+        </div>
+        <div class="row mb-4">
+          <div class="col-8">
+            <button class="btn btn-primary px-4" type="button">Update Orders</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
