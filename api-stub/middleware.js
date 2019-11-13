@@ -65,8 +65,12 @@ class MiddlewareApi {
                 .connect()
                 .then(() => {
                     console.log('connected');
+                    const columnsClause = 'id, order_id, user_token, account, parseketable, isin, op_type, amount_ordered, limit_price, tif, instructions, ' +
+                    'security_name, side, filled_name, working, amnt_left, pct_left, average_price, broker_name, status, portfolio_manager, ' +
+                    'trader_name, order_date, order_creation, last_touched, ts_order_date, settle_date, security_id, order_number, ticket_number ';
+                    const whereClause = userToken !== '' ? ' WHERE user_token=$1::text' : '';
                     const query = {
-                        text: 'select * from orders WHERE user_token=$1::text',
+                        text: 'select ' + columnsClause + 'from orders' + whereClause,
                         values: [userToken]
                     };
         
@@ -76,6 +80,7 @@ class MiddlewareApi {
                             console.log(`query result received`);
                             const successResponse = self.successResponse();
                             successResponse.rows = res.rows;
+                            successResponse.headers = self.getOrdersHeader();
                             resolve(successResponse);
                         }, error => {
                                 resolve(self.errorResponse(error.message));
@@ -113,10 +118,10 @@ class MiddlewareApi {
                     const query = {
                         text: 'insert into orders(user_token, account, parseketable, isin, op_type, amount_ordered, limit_price, tif, instructions, ' +
                         'security_name, side, filled_name, working, amnt_left, pct_left, average_price, broker_name, status, portfolio_manager, ' +
-                        'trader_name, order_date, order_creation, last_touched, ts_order_date, settle_date, security_id, order_number, ticket_number) ' +
+                        'trader_name, order_date, order_creation, last_touched, ts_order_date, settle_date, security_id, order_number, ticket_number, order_id) ' +
                         'values($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, ' +
-                        '$11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28' +
-                        ')',
+                        '$11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29' +
+                        ') RETURNING *',
                         values: [order.user_token,
                         	order.account,
                             order.parseketable,
@@ -144,7 +149,8 @@ class MiddlewareApi {
                             order.settle_date,
                             order.security_id,
                             order.order_number,
-                            order.ticket_number
+                            order.ticket_number,
+                            order.order_id
                         ]
                     };
         
@@ -252,12 +258,56 @@ class MiddlewareApi {
         });
     }
 
+    deleteOrder(id)  {
+        console.log(`deletes the order: ${id}`);
+        const self = this;
+        return new Promise(function(resolve, reject) {
+            const client = new Client({
+                connectionString: self.connectionString,
+            });
+
+            client
+                .connect()
+                .then(() => {
+                    const query = {
+                        text: 'delete from orders where id=$1',
+                        values: [id
+                        ]
+                    };
+        
+                    client
+                        .query(query)
+                        .then(res => {
+                            console.log(res.rows[0]);
+                            console.log(`query result received`);
+                            const successResponse = self.successResponse();
+                            successResponse.rows = res.rows;
+                            resolve(successResponse);
+                        }, error => {
+                                resolve(self.errorResponse(error.message));
+                            }
+                        )
+                        .catch(e => {
+                            console.error(e.stack);
+                            resolve(self.errorResponse(err.message));
+                        });
+        
+                })
+                .catch(err => {
+                    console.error('connection error', err.stack);
+                    resolve(self.errorResponse(err.message));
+                }
+            );
+
+        });
+    }
+
     /**
      * Helper function to return success response
      */
     successResponse() {
         return {
-            sucess: true
+            success: true
         };
     }
 
@@ -266,9 +316,55 @@ class MiddlewareApi {
      */
     errorResponse(message) {
         return {
-            sucess: false,
+            success: false,
             error: message
         };
+    }
+
+    create_UUID() {
+        var dt = new Date().getTime();
+        var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+            var r = (dt + Math.random()*16)%16 | 0;
+            dt = Math.floor(dt/16);
+            return (c=='x' ? r :(r&0x3|0x8)).toString(16);
+        });
+        return uuid;
+    }
+
+    getOrdersHeader() {
+        const data = [
+            'id', 
+            'order_id', 
+            'user_token', 
+            'account', 
+            'parseketable', 
+            'isin', 
+            'op_type', 
+            'amount_ordered',
+            'limit_price',
+            'tif',
+            'instructions',
+            'security_name',
+            'side',
+            'filled_name',
+            'working',
+            'amnt_left',
+            'pct_left',
+            'average_price',
+            'broker_name',
+            'status',
+            'portfolio_manager',
+            'trader_name',
+            'order_date',
+            'order_creation',
+            'last_touched',
+            'ts_order_date',
+            'settle_date',
+            'security_id',
+            'order_number',
+            'ticket_number'
+        ];
+        return data;
     }
 }
 

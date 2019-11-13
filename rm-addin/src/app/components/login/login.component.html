@@ -1,6 +1,6 @@
 <div class="ms-navigation__content" *ngIf="processing">
   <div class="lds-spinner"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
-  <h1 class="ms-fontSize-xl ms-fontWeight-light" style="text-align: center;">{{loadingText}}</h1>
+  <p class="ms-fontSize-x1 ms-fontWeight-light" style="text-align: center;">{{loadingText}}</p>
 </div>
 <div class="container" *ngIf="!processing">
   <div class="row">
@@ -19,7 +19,7 @@
           </div>
           <input type="password" class="form-control" required formControlName="password"  placeholder="Password">
         </div>
-        <app-alert [dismissOnTimeout]="60000" [isOpen]="isError" (Closed)="alertClosed()">
+        <app-alert [dismissOnTimeout]="15000" [isOpen]="isError" (Closed)="alertClosed()">
             <strong>Error:</strong>
             {{errorMessage}}
         </app-alert>

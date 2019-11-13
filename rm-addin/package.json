@@ -4,8 +4,8 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "start-ssl": "ng serve --ssl true --ssl-key /ssl/server.key --ssl-cert /ssl/server.crt",
-    "build": "ng build",
+    "start-ssl": "ng serve --ssl true --ssl-key /ssl/server.key --ssl-cert /ssl/server.crt --port 4301",
+    "build": "ng build --prod --aot --buildOptimizer --commonChunk --vendorChunk --optimization --progress",
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e"
@@ -22,7 +22,7 @@
     "@angular/router": "~8.2.7",
     "bootstrap": "^4.3.1",
     "classlist.js": "^1.1.20150312",
-    "core-js": "^3.3.5",
+    "core-js": "^3.4.1",
     "font-awesome": "^4.7.0",
     "rxjs": "~6.4.0",
     "tslib": "^1.10.0",

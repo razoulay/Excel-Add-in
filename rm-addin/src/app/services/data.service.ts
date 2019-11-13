@@ -9,7 +9,16 @@ import { UserSession } from '../models/userauth.model';
 export class DataService {
   private userSessionKey: string;
 
-  constructor(private router: Router,) {
+  public static getFirstWhere<T>(array: T[], condition: (item: T) => boolean): T | undefined {
+    for (const item of array) {
+        if (condition(item) === true) {
+          return item;
+        }
+    }
+    return undefined;
+  }
+
+  constructor(private router: Router) {
     console.log('DataService constructor');
     this.userSessionKey = 'RmAddin_UserSession';
   }
@@ -40,5 +49,15 @@ export class DataService {
    */
   public clearUserSession(): void {
     sessionStorage.removeItem(this.userSessionKey);
+  }
+
+  public create_UUID() {
+    let dt = new Date().getTime();
+    const uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+      const r = (dt + Math.random() * 16) % 16 | 0;
+      dt = Math.floor(dt / 16);
+      return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+    });
+    return uuid;
   }
 }

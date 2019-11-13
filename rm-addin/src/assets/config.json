@@ -1,0 +1,24 @@
+{
+	"apiMethods": [
+		{
+			"host": "https://localhost:4302",
+			"name": "login",
+			"method": "/login"
+		},
+		{
+			"host": "https://localhost:4302",
+			"name": "addorder",
+			"method": "/order"
+		},
+		{
+			"host": "https://localhost:4302",
+			"name": "orders",
+			"method": "/orders"
+		},
+		{
+			"host": "https://localhost:4302",
+			"name": "deleteorder",
+			"method": "/order"
+		}
+	]
+}

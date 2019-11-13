@@ -3,7 +3,8 @@ import { Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 
 import { DataService } from '../../services/data.service';
-import { UserSession } from '../../models/userauth.model';
+import { UserSession, UserAuth } from '../../models/userauth.model';
+import { RestApiService } from '../../services/restapi.service';
 
 @Component({
   selector: 'app-login',
@@ -17,9 +18,10 @@ export class LoginComponent implements OnInit {
   processing: boolean;
   loadingText: string;
 
-  reactiveForm: FormGroup;
+  public reactiveForm: FormGroup;
 
-  constructor(private router: Router, private formBuilder: FormBuilder, private dataService: DataService) {
+  constructor(private router: Router, private formBuilder: FormBuilder, private dataService: DataService,
+              private apiService: RestApiService) {
     console.log('Login component is created');
     this.processing = false;
 
@@ -33,16 +35,30 @@ export class LoginComponent implements OnInit {
     console.log('LoginComponent initializing...');
   }
 
-  authorize(): void {
+  authorize(event): void {
     if (this.reactiveForm.valid) {
       console.log(`authorize = ${this.reactiveForm.value.username}`);
       this.loadingText = 'Authentication ...';
       this.processing = true;
-      const userSession = new UserSession();
-      userSession.userToken = 'aaaaaa';
-      this.dataService.setUserSession(userSession);
+      const user = new UserAuth(this.reactiveForm.value.username, this.reactiveForm.value.password);
 
-      this.router.navigate(['dashboard']);
+      this.apiService.authenticate(user).subscribe((result) => {
+        console.log(`authenticate success: session_token = ${result.userToken}`);
+        this.processing = false;
+        if (result.userToken !== '') {
+          this.dataService.setUserSession(result);
+          this.router.navigate(['dashboard']);
+        } else {
+          this.errorMessage = 'Credentials are wrong';
+          this.isError = true;
+        }
+      }, (err) => {
+        console.log('authenticate failed');
+        this.errorMessage = err.message;
+        this.processing = false;
+        this.isError = true;
+      });
+
     }
   }
 

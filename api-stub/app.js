@@ -1,11 +1,15 @@
 var express = require("express");
 var app = express();
+var https = require('https')
+var fs = require('fs')
+var cors = require('cors');
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 4302;
 
 let configData = require('./config.json');
 
 app.use(express.json());
+app.use(cors());
 
 const { MiddlewareApi } =  require('./middleware.js');
 
@@ -18,7 +22,19 @@ app.post('/login', function(request, response){
   api.authenticate(request.body.username, request.body.password)
     .then((result) => {
       console.log('\nresult is : ' + result);
-      response.send(result);
+      if (result.rows.length > 0) {
+        response.send({
+          "userToken": result.rows[0].user_token,
+          "allowUpdateOrders": result.rows[0].allow_update_orders
+          }
+        );
+      } else {
+        response.send({
+          "userToken": '',
+          "allowUpdateOrders": false
+          }
+        );
+      }
   })
   .catch((strErr) => {
     console.error('\n!!! ERROR !!!');
@@ -28,11 +44,10 @@ app.post('/login', function(request, response){
 });
 
 app.get('/orders', function(request, response){
-  console.log(request.body);      // your JSON
-  console.log(`user_token : ${request.body.user_token}`);      // your JSON
+  console.log(`userToken : ${request.query.userToken}`);      // your JSON
 
   const api = new MiddlewareApi(configData.postgres_connection_string);
-  api.getOrders(request.body.user_token)
+  api.getOrders(request.query.userToken)
     .then((result) => {
       console.log('\nresult is : ' + result);
       response.send(result);
@@ -79,7 +94,30 @@ app.post('/order/:id', function(request, response){
   });
 });
 
+app.delete('/order/:id', function(request, response){
+  console.log(request.params.id);
+  console.log(request.body);      // your JSON
 
-app.listen(port, () => {
-    console.log("Server running on port :" + port);
+  const id = parseInt(request.params.id, 10);
+  console.log("id : " + id);
+  const api = new MiddlewareApi(configData.postgres_connection_string);
+  api.deleteOrder(id, request.body)
+    .then((result) => {
+      console.log('\nresult is : ' + result);
+      response.send(result);
+  })
+  .catch((strErr) => {
+    console.error('\n!!! ERROR !!!');
+    console.error(strErr);
+    response.send(strErr);
+  });
+});
+
+
+https.createServer({
+  key: fs.readFileSync('./ssl/server.key'),
+  cert: fs.readFileSync('./ssl/server.crt')
+}, app)
+.listen(port, () => {
+  console.log("Server running on port :" + port);
 });

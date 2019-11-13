@@ -15,12 +15,24 @@ export class RouteGuardService implements CanActivate {
         state: RouterStateSnapshot): boolean {
 
         console.log(`Routing request: ${state.url}`);
-        const userSession = this.dataService.getUserSession();
+        if (state.url === '/dashboard') {
+            const userSession = this.dataService.getUserSession();
 
-        if (userSession === null || userSession === undefined) {
-            this.router.navigate(['authentication']);
-            return false;
+            if (userSession === null || userSession === undefined) {
+                console.log('Navigate to /authentication');
+                this.router.navigate(['authentication']);
+                return true;
+            }
+        } else if (state.url === '/authentication') {
+            const userSession = this.dataService.getUserSession();
+
+            if (userSession !== null && userSession.userToken !== '') {
+                console.log('Navigate to /dashboard');
+                this.router.navigate(['dashboard']);
+                return true;
+            }
         }
+
         return true;
     }
  }

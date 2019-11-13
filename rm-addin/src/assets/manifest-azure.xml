@@ -5,9 +5,9 @@
   <DefaultLocale>en-US</DefaultLocale>
   <DisplayName DefaultValue="RM Addin"></DisplayName>
   <Description DefaultValue="RM Addin description."></Description>
-  <IconUrl DefaultValue="https://localhost:4301/assets/icon-32.png"></IconUrl>
-  <HighResolutionIconUrl DefaultValue="https://localhost:4301/assets/hi-res-icon.png"></HighResolutionIconUrl>
-  <SupportUrl DefaultValue="https://localhost:4301/support"></SupportUrl>
+  <IconUrl DefaultValue="https://rm-addin.azurewebsites.net/assets/icon-32.png"></IconUrl>
+  <HighResolutionIconUrl DefaultValue="https://rm-addin.azurewebsites.net/assets/hi-res-icon.png"></HighResolutionIconUrl>
+  <SupportUrl DefaultValue="https://rm-addin.azurewebsites.net/support"></SupportUrl>
   <Hosts>
     <Host Name="Workbook"></Host>
   </Hosts>
@@ -17,7 +17,7 @@
     </Sets>
   </Requirements>
   <DefaultSettings>
-    <SourceLocation DefaultValue="https://localhost:4301/app"></SourceLocation>
+    <SourceLocation DefaultValue="https://rm-addin.azurewebsites.net"></SourceLocation>
   </DefaultSettings>
   <Permissions>ReadWriteDocument</Permissions>
   <VersionOverrides xmlns="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="VersionOverridesV1_0">
@@ -72,18 +72,18 @@
     </Hosts>
     <Resources>
       <bt:Images>
-        <bt:Image id="dashboard-icon-16" DefaultValue="https://localhost:4301/assets/icon-16.png"/>
-        <bt:Image id="dashboard-icon-20" DefaultValue="https://localhost:4301/assets/icon-20.png"/>
-        <bt:Image id="dashboard-icon-32" DefaultValue="https://localhost:4301/assets/icon-32.png"/>
-        <bt:Image id="dashboard-icon-40" DefaultValue="https://localhost:4301/assets/icon-40.png"/>
-        <bt:Image id="dashboard-icon-48" DefaultValue="https://localhost:4301/assets/icon-48.png"/>
-        <bt:Image id="dashboard-icon-64" DefaultValue="https://localhost:4301/assets/icon-64.png"/>
-        <bt:Image id="dashboard-icon-80" DefaultValue="https://localhost:4301/assets/icon-80.png"/>
+        <bt:Image id="dashboard-icon-16" DefaultValue="https://rm-addin.azurewebsites.net/assets/icon-16.png"/>
+        <bt:Image id="dashboard-icon-20" DefaultValue="https://rm-addin.azurewebsites.net/assets/icon-20.png"/>
+        <bt:Image id="dashboard-icon-32" DefaultValue="https://rm-addin.azurewebsites.net/assets/icon-32.png"/>
+        <bt:Image id="dashboard-icon-40" DefaultValue="https://rm-addin.azurewebsites.net/assets/icon-40.png"/>
+        <bt:Image id="dashboard-icon-48" DefaultValue="https://rm-addin.azurewebsites.net/assets/icon-48.png"/>
+        <bt:Image id="dashboard-icon-64" DefaultValue="https://rm-addin.azurewebsites.net/assets/icon-64.png"/>
+        <bt:Image id="dashboard-icon-80" DefaultValue="https://rm-addin.azurewebsites.net/assets/icon-80.png"/>
       </bt:Images>
       <bt:Urls>
-        <bt:Url id="app-url" DefaultValue="https://localhost:4301"/>
-        <bt:Url id="function-file-url" DefaultValue="https://localhost:4301/index.html"/>
-        <bt:Url id="learn-more-url" DefaultValue="https://localhost:4301/learn-more.html"/>
+        <bt:Url id="app-url" DefaultValue="https://rm-addin.azurewebsites.net"/>
+        <bt:Url id="function-file-url" DefaultValue="https://rm-addin.azurewebsites.net/index.html"/>
+        <bt:Url id="learn-more-url" DefaultValue="https://rm-addin.azurewebsites.net/learn-more.html"/>
       </bt:Urls>
       <bt:ShortStrings>
         <bt:String id="view-dashboard" DefaultValue="Dashboard"/>

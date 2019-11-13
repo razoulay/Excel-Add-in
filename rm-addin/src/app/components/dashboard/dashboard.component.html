@@ -1,27 +1,32 @@
 <div class="ms-navigation__content" *ngIf="processing">
   <div class="lds-spinner"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
-  <h1 class="ms-fontSize-xl ms-fontWeight-light" style="text-align: center;">{{loadingText}}</h1>
+  <p class="ms-fontSize-x1 ms-fontWeight-light" style="text-align: center;">{{loadingText}}</p>
 </div>
 <div class="container" *ngIf="!processing">
   <div class="row">
     <div class="col-md-8 mx-auto">
-      <form autocomplete="off" novalidate [formGroup]="reactiveForm" (ngSubmit)="authorize($event)">
+      <form autocomplete="off" novalidate>
         <p class="text-muted">Select your action:</p>
         <app-alert [dismissOnTimeout]="60000" [isOpen]="isError" (Closed)="alertClosed()">
             <strong>Error:</strong>
             {{errorMessage}}
         </app-alert>
-        <div class="row mb-4">
+        <div class="row mb-4" *ngIf="!allowUpdateOrders">
           <div class="col-8">
-            <button class="btn btn-primary px-4" type="button">New Trade</button>
+            <button class="btn btn-primary px-4" type="button" (click)="newTrade()">New Trade</button>
           </div>
         </div>
-        <div class="row mb-4">
+        <div class="row mb-4" *ngIf="!allowUpdateOrders">
           <div class="col-8">
-            <button class="btn btn-primary px-4" type="button">Send Trade</button>
+            <button class="btn btn-primary px-4" type="button" (click)="sendTrade()">Send Trade</button>
           </div>
         </div>
-        <div class="row mb-4">
+        <div class="row mb-4" *ngIf="!allowUpdateOrders">
+          <div class="col-8">
+            <button class="btn btn-primary px-4" type="button" (click)="myOrders()">My Orders</button>
+          </div>
+        </div>
+        <div class="row mb-4" *ngIf="allowUpdateOrders">
           <div class="col-8">
             <button class="btn btn-primary px-4" type="button">RM Orders</button>
           </div>
@@ -29,6 +34,16 @@
         <div class="row mb-4">
           <div class="col-8">
             <button class="btn btn-primary px-4" type="button">Update Orders</button>
+          </div>
+        </div>
+        <div class="row mb-4" *ngIf="!allowUpdateOrders">
+          <div class="col-8">
+            <button class="btn btn-primary px-4" type="button" (click)="deleteOrder()">Delete Order</button>
+          </div>
+        </div>
+        <div class="row mb-4">
+          <div class="col-8">
+            <button class="btn btn-primary px-4" type="button" (click)="logout()">Logout</button>
           </div>
         </div>
       </form>

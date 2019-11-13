@@ -17,6 +17,7 @@ CREATE TABLE "orders"
 (
     id serial,
 	user_token varchar(256) NOT NULL,
+	order_id varchar(256) NOT NULL,
     account varchar(256),
 	parseketable varchar(256),
 	isin varchar(256),
