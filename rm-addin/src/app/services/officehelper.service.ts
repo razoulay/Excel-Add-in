@@ -99,8 +99,10 @@ export class OfficehelperService {
 
           expensesTable.getHeaderRowRange().values = [ headers ];
 
-          const data = this.getJsonDataAsArray(headers, rows);
-          expensesTable.rows.add(null, data);
+          if (rows !== null && rows !== undefined && rows.length > 0) {
+            const data = this.getJsonDataAsArray(headers, rows);
+            expensesTable.rows.add(null, data);
+          }
 
           if (Office.context.requirements.isSetSupported("ExcelApi", "1.2")) {
               sheet.getUsedRange().format.autofitColumns();
