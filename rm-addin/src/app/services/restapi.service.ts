@@ -9,7 +9,7 @@ import { DataService } from './data.service';
 // imports models
 import { UserAuth, UserSession } from '../models/userauth.model';
 import { RestApiError, CustomErrorCode } from '../models/restapierror.model';
-import { Order } from '../models/order.model';
+import { Order, ExtendedOrder } from '../models/order.model';
 
 
 declare var $: any;
@@ -78,6 +78,47 @@ export class RestApiService {
       })
     };
     return this.http.get<any>(endpoint, httpOptions)
+    .pipe(
+      map(response => {
+        return response;
+      }),
+      catchError(error => {
+        return this.handleError(error);
+      })
+    );
+  }
+
+  public getRMOrders(): Observable<any>  {
+    console.log('getRMOrders');
+    let endpoint = this.getApiMethodUrl('orders');
+    endpoint += '?userToken=';
+    console.log(`Calls the endpoint: ${endpoint}`);
+    const httpOptions = {
+      headers: new HttpHeaders({
+        'Content-Type':  'application/json'
+      })
+    };
+    return this.http.get<any>(endpoint, httpOptions)
+    .pipe(
+      map(response => {
+        return response;
+      }),
+      catchError(error => {
+        return this.handleError(error);
+      })
+    );
+  }
+
+  public updateOrder(id: string, order: ExtendedOrder): Observable<any>  {
+    console.log('updateOrder');
+    let endpoint = this.getApiMethodUrl('updateorder');
+    endpoint += `/${id}`;
+    const httpOptions = {
+      headers: new HttpHeaders({
+        'Content-Type':  'application/json'
+      })
+    };
+    return this.http.post<UserSession>(endpoint, order.serialize(), httpOptions)
     .pipe(
       map(response => {
         return response;

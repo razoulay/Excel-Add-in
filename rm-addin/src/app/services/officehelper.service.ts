@@ -25,9 +25,21 @@ export class OfficehelperService {
     return Observable.create(observer => {
       if (Office.context !== undefined && Office.context != null) {
         Excel.run(async context => {
-          const sheet = context.workbook.worksheets.getActiveWorksheet();
-          sheet.getRange().clear();
+          const sheetName = 'New Trade';
+          const sheets = context.workbook.worksheets;
+          sheets.load('items/name');
           await context.sync();
+          let sheet = this.getWorksheetByName(sheets, sheetName);
+          if (sheet === null || sheet === undefined) {
+            console.log(`Sheet with name ${sheetName} not found`);
+            sheet = sheets.add(sheetName);
+            sheet.load('name, position');
+            await context.sync();
+          } else {
+            sheet.getRange().clear();
+            await context.sync();
+          }
+
           // set main headers
           const data = [
             ['Orders sum', '', ''] ,
@@ -105,6 +117,73 @@ export class OfficehelperService {
           }
 
           if (Office.context.requirements.isSetSupported("ExcelApi", "1.2")) {
+              sheet.getUsedRange().format.autofitColumns();
+              sheet.getUsedRange().format.autofitRows();
+          }
+
+          sheet.activate();
+          await context.sync();
+
+          const statusIndex = this.getHeaderIndex(headers, 'status');
+          if (statusIndex > 0) {
+            const columnIndex = this.toColumnName(statusIndex);
+            const address = `${columnIndex}2:${columnIndex}${rows.length + 1}`;
+            const range = sheet.getRange(address);
+            range.dataValidation.rule = {
+              list: {
+                  inCellDropDown: true,
+                  source: 'EXECUTED,NOT EXECUTED'
+              }
+            };
+            await context.sync();
+          }
+
+          this.completeObservable(observer, true);
+        })
+        .catch(error => {
+          console.log(`Error: ${error}`);
+          throw Observable.throw(error);
+        });
+      } else {
+        this.completeObservable(observer, false);
+      }
+    });
+  }
+
+  /**
+   * Creates RM Orders sheet
+   */
+  createRMOrdersSheet(headers: any, rows: any): Observable<boolean> {
+    console.log('Officehelper RMOrders method');
+    return Observable.create(observer => {
+      if (Office.context !== undefined && Office.context != null) {
+        Excel.run(async context => {
+          const sheetName = 'RM Orders';
+          const sheets = context.workbook.worksheets;
+          sheets.load('items/name');
+          await context.sync();
+          let sheet = this.getWorksheetByName(sheets, sheetName);
+          if (sheet === null || sheet === undefined) {
+            console.log(`Sheet with name ${sheetName} not found`);
+            sheet = sheets.add(sheetName);
+            sheet.load('name, position');
+            await context.sync();
+          } else {
+            sheet.getRange().clear();
+            await context.sync();
+          }
+
+          const expensesTable = sheet.tables.add(`A1:${this.toColumnName(headers.length)}1`, true);
+          expensesTable.name = 'RMOrdersTable';
+
+          expensesTable.getHeaderRowRange().values = [ headers ];
+
+          if (rows !== null && rows !== undefined && rows.length > 0) {
+            const data = this.getJsonDataAsArray(headers, rows);
+            expensesTable.rows.add(null, data);
+          }
+
+          if (Office.context.requirements.isSetSupported('ExcelApi', '1.2')) {
               sheet.getUsedRange().format.autofitColumns();
               sheet.getUsedRange().format.autofitRows();
           }

@@ -32,12 +32,14 @@ export class DashboardComponent implements OnInit {
     if (userSession !== null && userSession !== undefined) {
       this.allowUpdateOrders = userSession.allowUpdateOrders;
       this.userToken = userSession.userToken;
-      this.officeHelper.newTradeSheet().subscribe((result: boolean) => {
-        console.log('newTradeSheet successfully');
-      },
-      (err) => {
-        console.log('newTradeSheet failed');
-      });
+      if (!this.allowUpdateOrders) {
+        this.officeHelper.newTradeSheet().subscribe((result: boolean) => {
+          console.log('newTradeSheet successfully');
+        },
+        (err) => {
+          console.log('newTradeSheet failed');
+        });
+      }
     }
   }
 
@@ -65,6 +67,45 @@ export class DashboardComponent implements OnInit {
           },
           (err) => {
             console.log('createMyOrdersSheet failed');
+            self.errorMessage = err.message;
+            self.processing = false;
+            self.isError = true;
+          },
+          () => {
+            self.processing = false;
+          });
+        } catch (e) {
+          self.errorMessage = e.message;
+          self.processing = false;
+          self.isError = true;
+        }
+      }
+    }, (err) => {
+      console.log('addOrder failed');
+      this.errorMessage = err.message;
+      this.processing = false;
+      this.isError = true;
+    });
+  }
+
+  rmOrders() {
+    const self = this;
+    self.loadingText = 'Loading RM Orders ...';
+    self.processing = true;
+    this.apiService.getRMOrders().subscribe((apiResponse) => {
+      console.log(`getRMOrders success: result = ${JSON.stringify(apiResponse)}`);
+      if (!apiResponse.success) {
+        self.errorMessage = apiResponse.error;
+        self.processing = false;
+        self.isError = true;
+      } else {
+        try {
+          this.officeHelper.createRMOrdersSheet(apiResponse.headers, apiResponse.rows).subscribe((result: boolean) => {
+            console.log('createRMOrdersSheet successfully');
+            self.processing = false;
+          },
+          (err) => {
+            console.log('createRMOrdersSheet failed');
             self.errorMessage = err.message;
             self.processing = false;
             self.isError = true;
@@ -155,6 +196,10 @@ export class DashboardComponent implements OnInit {
     (err) => {
       console.log('checkNewTrade failed');
     });
+  }
+
+  updateOrder() {
+
   }
 
   deleteOrder() {

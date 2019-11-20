@@ -28,12 +28,12 @@
         </div>
         <div class="row mb-4" *ngIf="allowUpdateOrders">
           <div class="col-8">
-            <button class="btn btn-primary px-4" type="button">RM Orders</button>
+            <button class="btn btn-primary px-4" type="button" (click)="rmOrders()">RM Orders</button>
           </div>
         </div>
         <div class="row mb-4">
           <div class="col-8">
-            <button class="btn btn-primary px-4" type="button">Update Orders</button>
+            <button class="btn btn-primary px-4" type="button" (click)="updateOrder()">Update Order</button>
           </div>
         </div>
         <div class="row mb-4" *ngIf="!allowUpdateOrders">

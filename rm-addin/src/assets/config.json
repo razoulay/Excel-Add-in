@@ -1,23 +1,29 @@
 {
 	"apiMethods": [
 		{
-			"host": "https://18.195.131.221:4302",
+			"host": "https://localhost:4302",
 			"name": "login",
 			"method": "/login"
 		},
 		{
-			"host": "https://18.195.131.221:4302",
+			"host": "https://localhost:4302",
 			"name": "addorder",
 			"method": "/order"
 		},
 		{
-			"host": "https://18.195.131.221:4302",
+			"host": "https://localhost:4302",
 			"name": "orders",
 			"method": "/orders"
 		},
 		{
-			"host": "https://18.195.131.221:4302",
+			"host": "https://localhost:4302",
 			"name": "deleteorder",
+			"method": "/order"
+		}
+		,
+		{
+			"host": "https://localhost:4302",
+			"name": "updateorder",
 			"method": "/order"
 		}
 	]
