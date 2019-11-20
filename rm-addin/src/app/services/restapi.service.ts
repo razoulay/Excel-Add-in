@@ -109,10 +109,10 @@ export class RestApiService {
     );
   }
 
-  public updateOrder(id: string, order: ExtendedOrder): Observable<any>  {
+  public updateOrder(order: ExtendedOrder): Observable<any>  {
     console.log('updateOrder');
     let endpoint = this.getApiMethodUrl('updateorder');
-    endpoint += `/${id}`;
+    endpoint += `/${order.id}`;
     const httpOptions = {
       headers: new HttpHeaders({
         'Content-Type':  'application/json'

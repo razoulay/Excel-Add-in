@@ -4,6 +4,7 @@ import { catchError, tap, map } from 'rxjs/operators';
 import { forkJoin } from 'rxjs';
 
 import { DataService } from './data.service';
+import { ExtendedOrder } from '../models/order.model';
 
 declare const Office: any;
 declare const Excel: any;
@@ -333,6 +334,73 @@ export class OfficehelperService {
           this.completeObservable(observer, '');
         }
 
+      })
+      .catch(error => {
+        console.log(`Error: ${error}`);
+        throw Observable.throw(error);
+      });
+    });
+  }
+
+  getChangedOrder(isRm: boolean): Observable<ExtendedOrder> {
+    console.log('Officehelper getChangedOrder method');
+    return Observable.create(observer => {
+      Excel.run(async context => {
+        const sheet = context.workbook.worksheets.getActiveWorksheet();
+        sheet.load('name');
+        await context.sync();
+        const sheetName = isRm ? 'RM Orders' : 'My Orders';
+        const tableName = isRm ? 'RMOrdersTable' : 'OrdersTable';
+        if (sheet.name !== sheetName) {
+          this.completeObservable(observer, null);
+        } else {
+          const range = context.workbook.getSelectedRange();
+          range.load(['rowIndex']);
+          await context.sync();
+          const expensesTable = sheet.tables.getItem(tableName);
+          expensesTable.rows.load(['count']);
+          await context.sync();
+          const rowIndex = range.rowIndex - 1;
+          if (expensesTable !== null && expensesTable !== undefined && expensesTable.rows.count > rowIndex && rowIndex >= 0) {
+            const rowRange = expensesTable.rows.getItemAt(rowIndex);
+            rowRange.load('values');
+            await context.sync();
+            const rowValues = rowRange.values;
+            const extendedOrder = new ExtendedOrder();
+            extendedOrder.id = rowValues[0][0];
+            extendedOrder.user_token = rowValues[0][2];
+            extendedOrder.account = rowValues[0][3];
+            extendedOrder.parseketable = rowValues[0][4];
+            extendedOrder.isin = rowValues[0][5];
+            extendedOrder.op_type = rowValues[0][6];
+            extendedOrder.amount_ordered = rowValues[0][7];
+            extendedOrder.limit_price = rowValues[0][8];
+            extendedOrder.tif = rowValues[0][9];
+            extendedOrder.instructions = rowValues[0][10];
+            extendedOrder.security_name = rowValues[0][11];
+            extendedOrder.side = rowValues[0][12];
+            extendedOrder.filled_name = rowValues[0][13];
+            extendedOrder.working = rowValues[0][14];
+            extendedOrder.amnt_left = rowValues[0][15];
+            extendedOrder.pct_left = rowValues[0][16];
+            extendedOrder.average_price = rowValues[0][17];
+            extendedOrder.broker_name = rowValues[0][18];
+            extendedOrder.status = rowValues[0][19];
+            extendedOrder.portfolio_manager = rowValues[0][20];
+            extendedOrder.trader_name = rowValues[0][21];
+            extendedOrder.order_date = rowValues[0][22];
+            extendedOrder.order_creation = rowValues[0][23];
+            extendedOrder.last_touched = rowValues[0][24];
+            extendedOrder.ts_order_date = rowValues[0][25];
+            extendedOrder.settle_date = rowValues[0][26];
+            extendedOrder.security_id = rowValues[0][27];
+            extendedOrder.order_number = rowValues[0][28];
+            extendedOrder.ticket_number = rowValues[0][29];
+            this.completeObservable(observer, extendedOrder);
+          } else {
+            this.completeObservable(observer, null);
+          }
+        }
       })
       .catch(error => {
         console.log(`Error: ${error}`);

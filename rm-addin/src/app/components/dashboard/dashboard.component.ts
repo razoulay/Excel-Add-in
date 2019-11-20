@@ -5,7 +5,7 @@ import { DataService } from '../../services/data.service';
 import { OfficehelperService } from '../../services/officehelper.service';
 import { RestApiService } from '../../services/restapi.service';
 
-import { Order } from '../../models/order.model';
+import { Order, ExtendedOrder } from '../../models/order.model';
 
 @Component({
   selector: 'app-dashboard',
@@ -199,7 +199,33 @@ export class DashboardComponent implements OnInit {
   }
 
   updateOrder() {
-
+    console.log('updateOrder');
+    const self = this;
+    this.officeHelper.getChangedOrder(this.allowUpdateOrders).subscribe((order: ExtendedOrder) => {
+      if (order === null || order === undefined) {
+        this.errorMessage = 'Please select Orders sheet and row';
+        this.isError = true;
+      } else {
+        self.loadingText = 'Updateing the Order ...';
+        self.processing = true;
+        this.apiService.updateOrder(order).subscribe((result) => {
+          console.log(`updateOrder success: result = ${JSON.stringify(result)}`);
+          self.processing = false;
+          if (result.success !== true) {
+            self.errorMessage = result.error;
+            self.isError = true;
+          }
+        }, (err) => {
+          console.log('updateOrder failed');
+          self.errorMessage = err.message;
+          self.processing = false;
+          self.isError = true;
+        });
+      }
+    },
+    (err) => {
+      console.log('updateOrder failed');
+    });
   }
 
   deleteOrder() {

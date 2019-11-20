@@ -195,7 +195,7 @@ class MiddlewareApi {
                 .connect()
                 .then(() => {
                     const query = {
-                        text: 'update orders set account=$2, parseketable=$3, isin=$4, op_type=$5, amount_ordered=$6, limit_price=$7, ' +
+                        text: 'update orders set user_token=$1, account=$2, parseketable=$3, isin=$4, op_type=$5, amount_ordered=$6, limit_price=$7, ' +
                         'tif=$8, instructions=$9, security_name=$10, side=$11, filled_name=$12, working=$13, amnt_left=$14, pct_left=$15, average_price=$16, ' +
                         'broker_name=$17, status=$18, portfolio_manager=$19, trader_name=$20, order_date=$21, order_creation=$22, last_touched=$23, ts_order_date=$24, ' +
                         'settle_date=$25, security_id=$26, order_number=$27, ticket_number=$28 where id=$29 returning *',

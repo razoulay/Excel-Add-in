@@ -10,6 +10,7 @@ export class Order extends BaseModel {
 }
 
 export class ExtendedOrder extends BaseModel {
+  public id: string;
   public user_token: string;
   public account: string;
   public parseketable: string;
