@@ -203,7 +203,7 @@ export class DashboardComponent implements OnInit {
     const self = this;
     this.officeHelper.getChangedOrder(this.allowUpdateOrders).subscribe((orders: any) => {
       if (orders === null || orders === undefined || orders.length <= 0) {
-        this.errorMessage = 'Please select Orders sheet and row';
+        this.errorMessage = 'You have no changed orders';
         this.isError = true;
       } else {
         let receivedResults = 0;

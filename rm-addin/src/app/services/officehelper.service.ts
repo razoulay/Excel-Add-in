@@ -380,7 +380,11 @@ export class OfficehelperService {
             const orders = new Array();
             const expensesTable = sheet.tables.getItem(tableName);
             expensesTable.rows.load(['count']);
+            const headerRange = expensesTable.getHeaderRowRange().load('values');
             await context.sync();
+            const headers = headerRange.values[0];
+            const statusIndex = this.getHeaderIndex(headers, 'status');
+
             for (let rowIndex of OfficehelperService.changedOrders.values()) {
               rowIndex = rowIndex - 1;
               if (expensesTable !== null && expensesTable !== undefined && expensesTable.rows.count > rowIndex && rowIndex >= 0) {
@@ -388,37 +392,40 @@ export class OfficehelperService {
                 rowRange.load('values');
                 await context.sync();
                 const rowValues = rowRange.values;
-                const extendedOrder = new ExtendedOrder();
-                extendedOrder.id = rowValues[0][0];
-                extendedOrder.user_token = rowValues[0][2];
-                extendedOrder.account = rowValues[0][3];
-                extendedOrder.parseketable = rowValues[0][4];
-                extendedOrder.isin = rowValues[0][5];
-                extendedOrder.op_type = rowValues[0][6];
-                extendedOrder.amount_ordered = rowValues[0][7];
-                extendedOrder.limit_price = rowValues[0][8];
-                extendedOrder.tif = rowValues[0][9];
-                extendedOrder.instructions = rowValues[0][10];
-                extendedOrder.security_name = rowValues[0][11];
-                extendedOrder.side = rowValues[0][12];
-                extendedOrder.filled_name = rowValues[0][13];
-                extendedOrder.working = rowValues[0][14];
-                extendedOrder.amnt_left = rowValues[0][15];
-                extendedOrder.pct_left = rowValues[0][16];
-                extendedOrder.average_price = rowValues[0][17];
-                extendedOrder.broker_name = rowValues[0][18];
-                extendedOrder.status = rowValues[0][19];
-                extendedOrder.portfolio_manager = rowValues[0][20];
-                extendedOrder.trader_name = rowValues[0][21];
-                extendedOrder.order_date = rowValues[0][22];
-                extendedOrder.order_creation = rowValues[0][23];
-                extendedOrder.last_touched = rowValues[0][24];
-                extendedOrder.ts_order_date = rowValues[0][25];
-                extendedOrder.settle_date = rowValues[0][26];
-                extendedOrder.security_id = rowValues[0][27];
-                extendedOrder.order_number = rowValues[0][28];
-                extendedOrder.ticket_number = rowValues[0][29];
-                orders.push(extendedOrder);
+                const statusValue = rowValues[0][statusIndex - 1];
+                if (statusValue !== 'EXECUTED') {
+                  const extendedOrder = new ExtendedOrder();
+                  extendedOrder.id = rowValues[0][0];
+                  extendedOrder.user_token = rowValues[0][2];
+                  extendedOrder.account = rowValues[0][3];
+                  extendedOrder.parseketable = rowValues[0][4];
+                  extendedOrder.isin = rowValues[0][5];
+                  extendedOrder.op_type = rowValues[0][6];
+                  extendedOrder.amount_ordered = rowValues[0][7];
+                  extendedOrder.limit_price = rowValues[0][8];
+                  extendedOrder.tif = rowValues[0][9];
+                  extendedOrder.instructions = rowValues[0][10];
+                  extendedOrder.security_name = rowValues[0][11];
+                  extendedOrder.side = rowValues[0][12];
+                  extendedOrder.filled_name = rowValues[0][13];
+                  extendedOrder.working = rowValues[0][14];
+                  extendedOrder.amnt_left = rowValues[0][15];
+                  extendedOrder.pct_left = rowValues[0][16];
+                  extendedOrder.average_price = rowValues[0][17];
+                  extendedOrder.broker_name = rowValues[0][18];
+                  extendedOrder.status = rowValues[0][19];
+                  extendedOrder.portfolio_manager = rowValues[0][20];
+                  extendedOrder.trader_name = rowValues[0][21];
+                  extendedOrder.order_date = rowValues[0][22];
+                  extendedOrder.order_creation = rowValues[0][23];
+                  extendedOrder.last_touched = rowValues[0][24];
+                  extendedOrder.ts_order_date = rowValues[0][25];
+                  extendedOrder.settle_date = rowValues[0][26];
+                  extendedOrder.security_id = rowValues[0][27];
+                  extendedOrder.order_number = rowValues[0][28];
+                  extendedOrder.ticket_number = rowValues[0][29];
+                  orders.push(extendedOrder);
+                }
               }
             }
             OfficehelperService.changedOrders = new Map();

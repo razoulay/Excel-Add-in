@@ -7,7 +7,7 @@
     <div class="col-md-8 mx-auto">
       <form autocomplete="off" novalidate>
         <p class="text-muted">Select your action:</p>
-        <app-alert [dismissOnTimeout]="60000" [isOpen]="isError" (Closed)="alertClosed()">
+        <app-alert [dismissOnTimeout]="5000" [isOpen]="isError" (Closed)="alertClosed()">
             <strong>Error:</strong>
             {{errorMessage}}
         </app-alert>
