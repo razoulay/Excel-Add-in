@@ -31,19 +31,23 @@ class MiddlewareApi {
                             console.log(`query result received`);
                             const successResponse = self.successResponse();
                             successResponse.rows = res.rows;
+                            client.end();
                             resolve(successResponse);
                         }, error => {
+                                client.end();
                                 resolve(self.errorResponse(error.message));
                             }
                         )
                         .catch(e => {
                             console.error(e.stack);
+                            client.end();
                             resolve(self.errorResponse(err.message));
                         });
         
                 })
                 .catch(err => {
                     console.error('connection error', err.stack);
+                    client.end();
                     resolve(self.errorResponse(err.message));
                 }
             );
@@ -81,19 +85,23 @@ class MiddlewareApi {
                             const successResponse = self.successResponse();
                             successResponse.rows = res.rows;
                             successResponse.headers = self.getOrdersHeader();
+                            client.end();
                             resolve(successResponse);
                         }, error => {
+                                client.end();
                                 resolve(self.errorResponse(error.message));
                             }
                         )
                         .catch(e => {
                             console.error(e.stack);
+                            client.end();
                             resolve(self.errorResponse(err.message));
                         });
         
                 })
                 .catch(err => {
                     console.error('connection error', err.stack);
+                    client.end();
                     resolve(self.errorResponse(err.message));
                 }
             );
@@ -161,19 +169,23 @@ class MiddlewareApi {
                             console.log(`query result received`);
                             const successResponse = self.successResponse();
                             successResponse.rows = res.rows;
+                            client.end();
                             resolve(successResponse);
                         }, error => {
+                                client.end();
                                 resolve(self.errorResponse(error.message));
                             }
                         )
                         .catch(e => {
                             console.error(e.stack);
+                            client.end();
                             resolve(self.errorResponse(err.message));
                         });
         
                 })
                 .catch(err => {
                     console.error('connection error', err.stack);
+                    client.end();
                     resolve(self.errorResponse(err.message));
                 }
             );
@@ -238,19 +250,23 @@ class MiddlewareApi {
                             console.log(`query result received`);
                             const successResponse = self.successResponse();
                             successResponse.rows = res.rows;
+                            client.end();
                             resolve(successResponse);
                         }, error => {
+                                client.end();
                                 resolve(self.errorResponse(error.message));
                             }
                         )
                         .catch(e => {
                             console.error(e.stack);
+                            client.end();
                             resolve(self.errorResponse(err.message));
                         });
         
                 })
                 .catch(err => {
                     console.error('connection error', err.stack);
+                    client.end();
                     resolve(self.errorResponse(err.message));
                 }
             );
@@ -282,19 +298,23 @@ class MiddlewareApi {
                             console.log(`query result received`);
                             const successResponse = self.successResponse();
                             successResponse.rows = res.rows;
+                            client.end();
                             resolve(successResponse);
                         }, error => {
+                                client.end();
                                 resolve(self.errorResponse(error.message));
                             }
                         )
                         .catch(e => {
                             console.error(e.stack);
+                            client.end();
                             resolve(self.errorResponse(err.message));
                         });
         
                 })
                 .catch(err => {
                     console.error('connection error', err.stack);
+                    client.end();
                     resolve(self.errorResponse(err.message));
                 }
             );

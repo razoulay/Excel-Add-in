@@ -232,20 +232,28 @@ export class DashboardComponent implements OnInit {
     const self = this;
     this.officeHelper.getSelectedOrderId().subscribe((success: string) => {
       console.log(`getSelectedOrderId returned: ${success}`);
-      if (success !== '') {
-        self.loadingText = 'Deleting the order ...';
+      if (success !== null && success.length > 0) {
+        self.loadingText = 'Deleting orders ...';
         self.processing = true;
-        this.apiService.deleteOrder(success).subscribe((result) => {
-          console.log(`addOrder success: result = ${JSON.stringify(result)}`);
-          self.processing = false;
-          self.isError = false;
-        }, (err) => {
-          console.log('addOrder failed');
-          this.errorMessage = err.message;
-          this.processing = false;
-          this.isError = true;
-        });
-
+        let receivedResults = 0;
+        let totalResults = success.length;
+        for (let index = 0; index < success.length; index++) {
+          const orderId = success[index];
+          this.apiService.deleteOrder(orderId).subscribe((result) => {
+            console.log(`addOrder success: result = ${JSON.stringify(result)}`);
+            receivedResults++;
+            if (receivedResults >= totalResults) {
+              self.processing = false;
+              self.isError = false;
+              self.myOrders();
+            }
+          }, (err) => {
+            console.log('addOrder failed');
+            this.errorMessage = err.message;
+            this.processing = false;
+            this.isError = true;
+          });
+        }
       } else {
         self.errorMessage = 'Select the Order with NOT EXECUTED status';
         self.processing = false;

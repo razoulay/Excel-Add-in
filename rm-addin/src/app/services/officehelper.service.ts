@@ -259,7 +259,7 @@ export class OfficehelperService {
         let allowSubmit = false;
         if (uRowsIndex.rowIndex > 3) {
           let range = sheet.getRange('C1');
-          range.formulas = [[ `=SUM(A5:A${uRowsIndex.rowIndex + 1})` ]];
+          range.formulas = [[ `=SUM(B5:B${uRowsIndex.rowIndex + 1})` ]];
           await context.sync();
           range = sheet.getRange('C1');
           range.load('values');
@@ -292,48 +292,42 @@ export class OfficehelperService {
     return Observable.create(observer => {
       Excel.run(async context => {
         let range = context.workbook.getSelectedRange();
-        range.load(['rowIndex', 'values']);
+        range.load(['rowCount', 'rowIndex']);
         await context.sync();
-        console.log(range.rowIndex);
+        console.log(range.rowIndex + '; ' + range.rowCount);
 
-        let rowIndex = -1;
-        if (range.values !== null && range.values !== undefined && range.values.length > 0) {
-          rowIndex = range.rowIndex;
-        }
+        if (range.rowCount > 0 && range.rowIndex > 0) {
+          const sheet = context.workbook.worksheets.getActiveWorksheet();
 
-        const sheet = context.workbook.worksheets.getActiveWorksheet();
-        range = sheet.getRange(`A${range.rowIndex + 1}`);
-        range.load('values');
-        await context.sync();
+          const expensesTable = sheet.tables.getItem('OrdersTable');
+          const headerRange = expensesTable.getHeaderRowRange().load('values');
+          await context.sync();
 
-        const rangeValues = range.values;
-
-        const expensesTable = sheet.tables.getItem('OrdersTable');
-        const headerRange = expensesTable.getHeaderRowRange().load('values');
-        await context.sync();
-
-        const headers = headerRange.values[0];
-        const statusIndex = this.getHeaderIndex(headers, 'status');
-        if (statusIndex > 0) {
-            const columnIndex = this.toColumnName(statusIndex);
-            const address = `${columnIndex}${rowIndex + 1}`;
-            const statusRange = sheet.getRange(address);
-            statusRange.load('values');
+          const ids = new Array();
+          const startIndex = range.rowIndex + 1;
+          const endIndex = range.rowIndex + range.rowCount;
+          for (let index = startIndex; index <= endIndex; ++index) {
+            range = sheet.getRange(`A${index}`);
+            range.load('values');
             await context.sync();
-            if (statusRange.values !== null && statusRange.values !== undefined && statusRange.values.length > 0 &&
-                  statusRange.values[0][0] === 'NOT EXECUTED') {
-              if (rangeValues !== null && rangeValues !== undefined && rangeValues.length > 0) {
-                this.completeObservable(observer, range.values[0]);
-              } else {
-                this.completeObservable(observer, '');
+            const headers = headerRange.values[0];
+            const statusIndex = this.getHeaderIndex(headers, 'status');
+            if (statusIndex > 0) {
+              const columnIndex = this.toColumnName(statusIndex);
+              const address = `${columnIndex}${index}`;
+              const statusRange = sheet.getRange(address);
+              statusRange.load('values');
+              await context.sync();
+              if (statusRange.values !== null && statusRange.values !== undefined && statusRange.values.length > 0 
+                  && statusRange.values[0][0] === 'NOT EXECUTED') {
+                ids.push(range.values[0][0]);
               }
-            } else {
-              this.completeObservable(observer, '');
             }
+          }
+          this.completeObservable(observer, ids);
         } else {
-          this.completeObservable(observer, '');
+          this.completeObservable(observer, null);
         }
-
       })
       .catch(error => {
         console.log(`Error: ${error}`);
