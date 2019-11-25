@@ -70,7 +70,8 @@ export class RestApiService {
   public getMyOrders(userToken: string): Observable<any>  {
     console.log(`getMyOrders: userToken is: ${userToken}`);
     let endpoint = this.getApiMethodUrl('orders');
-    endpoint += `?userToken=${userToken}`;
+	const timestamp = new Date().getTime();
+    endpoint += `?et=${timestamp}&userToken=${userToken}`;
     console.log(`Calls the endpoint: ${endpoint}`);
     const httpOptions = {
       headers: new HttpHeaders({
@@ -91,7 +92,8 @@ export class RestApiService {
   public getRMOrders(): Observable<any>  {
     console.log('getRMOrders');
     let endpoint = this.getApiMethodUrl('orders');
-    endpoint += '?userToken=';
+	const timestamp = new Date().getTime();
+    endpoint += `?et=${timestamp}&userToken=`;
     console.log(`Calls the endpoint: ${endpoint}`);
     const httpOptions = {
       headers: new HttpHeaders({
