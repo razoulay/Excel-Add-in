@@ -14,11 +14,15 @@ declare const Excel: any;
 })
 export class OfficehelperService {
 
-  static changedOrders: any;
+  changedOrders: any;
+  myOrdersChangesEventHandler: any;
+  rmOrdersChangesEventHandler: any;
 
   constructor(private dataService: DataService) {
     console.log('Officehelper service created');
-    OfficehelperService.changedOrders = new Array();
+    this.changedOrders = new Array();
+    this.myOrdersChangesEventHandler = null;
+    this.rmOrdersChangesEventHandler = null;
   }
 
   /**
@@ -92,6 +96,7 @@ export class OfficehelperService {
    */
   createMyOrdersSheet(headers: any, rows: any): Observable<boolean> {
     console.log('Officehelper myOrders method');
+    const self = this;
     return Observable.create(observer => {
       if (Office.context !== undefined && Office.context != null) {
         Excel.run(async context => {
@@ -106,11 +111,18 @@ export class OfficehelperService {
             sheet.load('name, position');
             await context.sync();
           } else {
+            self.removeEventHandler(self.myOrdersChangesEventHandler);
+            self.myOrdersChangesEventHandler = null;
+            self.changedOrders = new Array();
+            console.log(`unprotect worksheet`);
+            sheet.protection.unprotect();
+            await context.sync();
+            console.log(`worksheet is unprotected`);
             sheet.getRange().clear();
             await context.sync();
           }
 
-          OfficehelperService.changedOrders = new Map();
+          self.changedOrders = new Map();
 
           const expensesTable = sheet.tables.add(`A1:${this.toColumnName(headers.length)}1`, true);
           expensesTable.name = 'OrdersTable';
@@ -130,11 +142,12 @@ export class OfficehelperService {
           sheet.activate();
           await context.sync();
 
+          let statusColumnAddress = '';
           const statusIndex = this.getHeaderIndex(headers, 'status');
           if (statusIndex > 0) {
             const columnIndex = this.toColumnName(statusIndex);
-            const address = `${columnIndex}2:${columnIndex}${rows.length + 1}`;
-            const range = sheet.getRange(address);
+            statusColumnAddress = `${columnIndex}2:${columnIndex}${rows.length + 1}`;
+            const range = sheet.getRange(statusColumnAddress);
             range.dataValidation.rule = {
               list: {
                   inCellDropDown: true,
@@ -144,7 +157,25 @@ export class OfficehelperService {
             await context.sync();
           }
 
-          expensesTable.onChanged.add(this.onTableChanged);
+          console.log('start to protect RM Sheet');
+          await this.protectRMSheet(context, sheet, statusColumnAddress);
+          console.log('finished the RM Sheet protection');
+
+          self.myOrdersChangesEventHandler = sheet.onChanged.add(eventArgs => {
+            if (eventArgs.changeType === Excel.DataChangeType.rangeEdited) {
+              Excel.run(async ctx => {
+                const address = eventArgs.address;
+                const range = sheet.getRange(address);
+                range.load(['rowIndex']);
+                await context.sync();
+                const rowIndex = range.rowIndex;
+                console.log(`Changes at ${address}, rowIndex = ${rowIndex}`);
+                self.changedOrders.set(rowIndex, rowIndex);
+                return context.sync();
+              });
+            }
+          });
+
           await context.sync();
 
           this.completeObservable(observer, true);
@@ -164,6 +195,7 @@ export class OfficehelperService {
    */
   createRMOrdersSheet(headers: any, rows: any): Observable<boolean> {
     console.log('Officehelper RMOrders method');
+    const self = this;
     return Observable.create(observer => {
       if (Office.context !== undefined && Office.context != null) {
         Excel.run(async context => {
@@ -178,11 +210,14 @@ export class OfficehelperService {
             sheet.load('name, position');
             await context.sync();
           } else {
+            self.removeEventHandler(self.rmOrdersChangesEventHandler);
+            self.rmOrdersChangesEventHandler = null;
+            self.changedOrders = new Array();
             sheet.getRange().clear();
             await context.sync();
           }
 
-          OfficehelperService.changedOrders = new Map();
+          self.changedOrders = new Map();
 
           const expensesTable = sheet.tables.add(`A1:${this.toColumnName(headers.length)}1`, true);
           expensesTable.name = 'RMOrdersTable';
@@ -216,7 +251,20 @@ export class OfficehelperService {
             await context.sync();
           }
 
-          expensesTable.onChanged.add(this.onTableChanged);
+          self.rmOrdersChangesEventHandler = sheet.onChanged.add(eventArgs => {
+            if (eventArgs.changeType === Excel.DataChangeType.rangeEdited) {
+              Excel.run(async ctx => {
+                const address = eventArgs.address;
+                const range = sheet.getRange(address);
+                range.load(['rowIndex']);
+                await context.sync();
+                const rowIndex = range.rowIndex;
+                console.log(`Changes at ${address}, rowIndex = ${rowIndex}`);
+                self.changedOrders.set(rowIndex, rowIndex);
+                return context.sync();
+              });
+            }
+          });
           await context.sync();
 
           this.completeObservable(observer, true);
@@ -232,7 +280,7 @@ export class OfficehelperService {
   }
 
   onTableChanged(eventArgs) {
-    Excel.run(async context => {
+    /*Excel.run(async context => {
         const address = eventArgs.address;
 
         const sheet = context.workbook.worksheets.getActiveWorksheet();
@@ -243,7 +291,7 @@ export class OfficehelperService {
         console.log(`Changes at ${address}, rowIndex = ${rowIndex}`);
         OfficehelperService.changedOrders.set(rowIndex, rowIndex);
         return context.sync();
-    });
+    });*/
   }
 
   /**
@@ -366,6 +414,7 @@ export class OfficehelperService {
 
   getChangedOrder(isRm: boolean): Observable<ExtendedOrder> {
     console.log('Officehelper getChangedOrder method');
+    const self = this;
     return Observable.create(observer => {
       Excel.run(async context => {
         const sheet = context.workbook.worksheets.getActiveWorksheet();
@@ -376,7 +425,7 @@ export class OfficehelperService {
         if (sheet.name !== sheetName) {
           this.completeObservable(observer, null);
         } else {
-          if (OfficehelperService.changedOrders.size > 0) {
+          if (self.changedOrders.size > 0) {
             const orders = new Array();
             const expensesTable = sheet.tables.getItem(tableName);
             expensesTable.rows.load(['count']);
@@ -385,7 +434,7 @@ export class OfficehelperService {
             const headers = headerRange.values[0];
             const statusIndex = this.getHeaderIndex(headers, 'status');
 
-            for (let rowIndex of OfficehelperService.changedOrders.values()) {
+            for (let rowIndex of self.changedOrders.values()) {
               rowIndex = rowIndex - 1;
               if (expensesTable !== null && expensesTable !== undefined && expensesTable.rows.count > rowIndex && rowIndex >= 0) {
                 const rowRange = expensesTable.rows.getItemAt(rowIndex);
@@ -393,42 +442,44 @@ export class OfficehelperService {
                 await context.sync();
                 const rowValues = rowRange.values;
                 const statusValue = rowValues[0][statusIndex - 1];
-                if (statusValue !== 'EXECUTED') {
-                  const extendedOrder = new ExtendedOrder();
-                  extendedOrder.id = rowValues[0][0];
-                  extendedOrder.user_token = rowValues[0][2];
-                  extendedOrder.account = rowValues[0][3];
-                  extendedOrder.parseketable = rowValues[0][4];
-                  extendedOrder.isin = rowValues[0][5];
-                  extendedOrder.op_type = rowValues[0][6];
-                  extendedOrder.amount_ordered = rowValues[0][7];
-                  extendedOrder.limit_price = rowValues[0][8];
-                  extendedOrder.tif = rowValues[0][9];
-                  extendedOrder.instructions = rowValues[0][10];
-                  extendedOrder.security_name = rowValues[0][11];
-                  extendedOrder.side = rowValues[0][12];
-                  extendedOrder.filled_name = rowValues[0][13];
-                  extendedOrder.working = rowValues[0][14];
-                  extendedOrder.amnt_left = rowValues[0][15];
-                  extendedOrder.pct_left = rowValues[0][16];
-                  extendedOrder.average_price = rowValues[0][17];
-                  extendedOrder.broker_name = rowValues[0][18];
-                  extendedOrder.status = rowValues[0][19];
-                  extendedOrder.portfolio_manager = rowValues[0][20];
-                  extendedOrder.trader_name = rowValues[0][21];
-                  extendedOrder.order_date = rowValues[0][22];
-                  extendedOrder.order_creation = rowValues[0][23];
-                  extendedOrder.last_touched = rowValues[0][24];
-                  extendedOrder.ts_order_date = rowValues[0][25];
-                  extendedOrder.settle_date = rowValues[0][26];
-                  extendedOrder.security_id = rowValues[0][27];
-                  extendedOrder.order_number = rowValues[0][28];
-                  extendedOrder.ticket_number = rowValues[0][29];
-                  orders.push(extendedOrder);
+                if (!isRm && statusValue === 'EXECUTED') {
+                  continue;
                 }
+
+                const extendedOrder = new ExtendedOrder();
+                extendedOrder.id = rowValues[0][0];
+                extendedOrder.user_token = rowValues[0][2];
+                extendedOrder.account = rowValues[0][3];
+                extendedOrder.parseketable = rowValues[0][4];
+                extendedOrder.isin = rowValues[0][5];
+                extendedOrder.op_type = rowValues[0][6];
+                extendedOrder.amount_ordered = rowValues[0][7];
+                extendedOrder.limit_price = rowValues[0][8];
+                extendedOrder.tif = rowValues[0][9];
+                extendedOrder.instructions = rowValues[0][10];
+                extendedOrder.security_name = rowValues[0][11];
+                extendedOrder.side = rowValues[0][12];
+                extendedOrder.filled_name = rowValues[0][13];
+                extendedOrder.working = rowValues[0][14];
+                extendedOrder.amnt_left = rowValues[0][15];
+                extendedOrder.pct_left = rowValues[0][16];
+                extendedOrder.average_price = rowValues[0][17];
+                extendedOrder.broker_name = rowValues[0][18];
+                extendedOrder.status = rowValues[0][19];
+                extendedOrder.portfolio_manager = rowValues[0][20];
+                extendedOrder.trader_name = rowValues[0][21];
+                extendedOrder.order_date = rowValues[0][22];
+                extendedOrder.order_creation = rowValues[0][23];
+                extendedOrder.last_touched = rowValues[0][24];
+                extendedOrder.ts_order_date = rowValues[0][25];
+                extendedOrder.settle_date = rowValues[0][26];
+                extendedOrder.security_id = rowValues[0][27];
+                extendedOrder.order_number = rowValues[0][28];
+                extendedOrder.ticket_number = rowValues[0][29];
+                orders.push(extendedOrder);
               }
             }
-            OfficehelperService.changedOrders = new Map();
+            self.changedOrders = new Map();
             this.completeObservable(observer, orders);
           } else {
             this.completeObservable(observer, null);
@@ -540,5 +591,46 @@ export class OfficehelperService {
   private completeObservable(observer: any, result: any): void {
     observer.next(result);
     observer.complete();
+  }
+
+  /**
+   * Protect RM sheet
+   */
+  private async protectRMSheet(context: any, sheet: any, statusColumnAddress: any) {
+
+    const entireRange = sheet.getRange();
+    entireRange.format.protection.locked = false;
+    console.log('sets all cells unlocked');
+    await context.sync();
+
+    if (statusColumnAddress !== '') {
+      const range = sheet.getRange(statusColumnAddress);
+      range.format.protection.locked = true;
+      console.log(`sets range ${statusColumnAddress} locked`);
+      await context.sync();
+    }
+
+    sheet.protection.protect({
+      allowAutoFilter: true,
+      allowDeleteColumns: false,
+      allowDeleteRows: false,
+      allowFormatCells: false,
+      allowFormatColumns: false,
+      allowFormatRows: false,
+      allowInsertColumns: false,
+      allowInsertHyperlinks: false,
+      allowInsertRows: false,
+      allowPivotTables: false,
+      allowSort: true
+    });
+    console.log(`protect worksheet`);
+    await context.sync();
+  }
+
+  private async removeEventHandler(eventHandler: any) {
+    if (eventHandler !== null) {
+      eventHandler.remove();
+      await eventHandler.context.sync();
+    }
   }
 }

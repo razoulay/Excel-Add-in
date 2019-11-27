@@ -217,9 +217,11 @@ export class DashboardComponent implements OnInit {
             receivedResults++;
             if (receivedResults >= totalResults) {
               self.processing = false;
-              if (result.success !== true) {
-                self.errorMessage = result.error;
-                self.isError = true;
+              self.isError = false;
+              if (self.allowUpdateOrders) {
+                self.rmOrders();
+              } else {
+                self.myOrders();
               }
             }
           }, (err) => {
@@ -253,7 +255,11 @@ export class DashboardComponent implements OnInit {
             if (receivedResults >= totalResults) {
               self.processing = false;
               self.isError = false;
-              self.myOrders();
+              if (self.allowUpdateOrders) {
+                self.rmOrders();
+              } else {
+                self.myOrders();
+              }
             }
           }, (err) => {
             console.log('addOrder failed');
