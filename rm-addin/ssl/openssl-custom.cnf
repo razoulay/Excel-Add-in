@@ -6,17 +6,18 @@ x509_extensions = v3_req
 distinguished_name = dn
 
 [dn]
-C = RU
-ST = TV
-L = TVER
-O = IT
+O = FFS
 OU = IT Department
 emailAddress = webmaster@example.com
-CN = 79.111.143.237
+CN = 18.195.131.221
+
+[v3_ca]
+subjectAltName = IP:18.195.131.221
 
 [v3_req]
 subjectAltName = @alt_names
 
 [alt_names]
 DNS.1 = *.localhost
-DNS.2 = 79.111.143.237
+DNS.3 = 18.195.131.221
+DNS.4 = 172.31.30.82

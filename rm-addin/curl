@@ -1,0 +1,15 @@
+curl -X POST 
+  http://18.195.131.221:4301/login 
+  -H 'Accept: */*' 
+  -H 'Accept-Encoding: gzip, deflate' 
+  -H 'Cache-Control: no-cache' 
+  -H 'Connection: keep-alive' 
+  -H 'Content-Length: 42' 
+  -H 'Content-Type: application/json' 
+  -H 'Host: localhost:3000' 
+  -H 'cache-control: no-cache' 
+  -d '{
+"username":"admin",
+"password":"admin"
+}’
+

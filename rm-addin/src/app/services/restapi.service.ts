@@ -46,17 +46,19 @@ export class RestApiService {
       })
     );
   }
-
-  public addOrder(order: Order): Observable<any>  {
-    console.log(`addOrder: Order is: ${order.serialize()}`);
-    const endpoint = this.getApiMethodUrl('addorder');
+	
+  public getUsername(userToken: string):  Observable<any> {
+    console.log(`getusename: in restapi service `+ userToken);
+    let endpoint = this.getApiMethodUrl('getUsername');
+    const timestamp = new Date().getTime();
+    endpoint += `?et=${timestamp}&userToken=${userToken}`;
     console.log(`Calls the endpoint: ${endpoint}`);
     const httpOptions = {
       headers: new HttpHeaders({
         'Content-Type':  'application/json'
       })
     };
-    return this.http.post<UserSession>(endpoint, order.serialize(), httpOptions)
+    return this.http.get<any>(endpoint, httpOptions)
     .pipe(
       map(response => {
         return response;
@@ -67,7 +69,76 @@ export class RestApiService {
     );
   }
 
-  public getMyOrders(userToken: string): Observable<any>  {
+
+
+  public sendEmail(data: any): Observable<any>  {
+    console.log(`sendEmail inside restapi service `);
+    const endpoint = this.getApiMethodUrl('sendEmail');
+    console.log(`Calls the endpoint: ${endpoint}`);
+    const httpOptions = {
+      headers: new HttpHeaders({
+        'Content-Type':  'application/json'
+      })
+    };
+    return this.http.post<UserSession>(endpoint, data, httpOptions)
+    .pipe(
+      map(response => {
+        console.log("all good in restapi sendemail()");
+        return response;
+      }),
+      catchError(error => {
+        console.log("error in restapi sendemail()");
+        return this.handleError(error);
+      })
+    );
+  }
+
+
+  public addOrder(orders: any): Observable<any>  {
+    console.log(`addOrder: Order is: {order.serialize()}`);
+    const endpoint = this.getApiMethodUrl('addorder');
+    console.log(`Calls the endpoint: ${endpoint}`);
+    const httpOptions = {
+      headers: new HttpHeaders({
+        'Content-Type':  'application/json'
+      })
+    };
+    return this.http.post<UserSession>(endpoint, JSON.stringify(orders) , httpOptions)
+    .pipe(
+      map(response => {
+        return response;
+      }),
+      catchError(error => {
+        return this.handleError(error);
+      })
+    );
+  }
+
+
+  public getFilterOrders(Bank, AssetType): Observable<any>  {
+    console.log('get filtered orders');
+    let endpoint = this.getApiMethodUrl('getFilterOrders');
+        const timestamp = new Date().getTime();
+    endpoint += `?et=${timestamp}&Bank=${Bank}&AssetType=${AssetType}`;
+    console.log(`Calls the endpoint: ${endpoint}`);
+    const httpOptions = {
+      headers: new HttpHeaders({
+        'Content-Type':  'application/json'
+      })
+    };
+    return this.http.get<any>(endpoint, httpOptions)
+    .pipe(
+      map(response => {
+        return response;
+      }),
+      catchError(error => {
+        return this.handleError(error);
+      })
+    );
+  }
+
+
+  public getOrders(userToken: string): Observable<any>  {
     console.log(`getMyOrders: userToken is: ${userToken}`);
     let endpoint = this.getApiMethodUrl('orders');
 	const timestamp = new Date().getTime();
@@ -88,10 +159,11 @@ export class RestApiService {
       })
     );
   }
+  
 
   public getRMOrders(): Observable<any>  {
     console.log('getRMOrders');
-    let endpoint = this.getApiMethodUrl('orders');
+    let endpoint = this.getApiMethodUrl('RMorders');
 	const timestamp = new Date().getTime();
     endpoint += `?et=${timestamp}&userToken=`;
     console.log(`Calls the endpoint: ${endpoint}`);
@@ -142,6 +214,28 @@ export class RestApiService {
       })
     };
     return this.http.delete<any>(endpoint, httpOptions)
+    .pipe(
+      map(response => {
+        return response;
+      }),
+      catchError(error => {
+        return this.handleError(error);
+      })
+    );
+  }
+
+  public getAllocationsByOrderId(orderId: string): Observable<any>  {
+    console.log('rest_api_code: getAllocationsByOrderId');
+    let endpoint = this.getApiMethodUrl('getAllocationsByOrderId');
+    const timestamp = new Date().getTime();
+    endpoint += `?orderId=${orderId}&et=${timestamp}&userToken=`;
+    console.log(`Calls the endpoint: ${endpoint}`);
+    const httpOptions = {
+      headers: new HttpHeaders({
+        'Content-Type':  'application/json'
+      })
+    };
+    return this.http.get<any>(endpoint, httpOptions)
     .pipe(
       map(response => {
         return response;

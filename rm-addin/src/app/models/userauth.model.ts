@@ -14,4 +14,5 @@ export class UserAuth extends BaseModel {
 export class UserSession extends BaseModel {
   public userToken: string;
   public allowUpdateOrders: boolean;
+  public userType: number;
 }

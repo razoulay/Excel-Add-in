@@ -39,4 +39,5 @@ export class ExtendedOrder extends BaseModel {
   public security_id: string;
   public order_number: string;
   public ticket_number: string;
+  public asset_type: string;
 }

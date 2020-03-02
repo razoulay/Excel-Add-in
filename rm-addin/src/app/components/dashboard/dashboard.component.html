@@ -16,29 +16,58 @@
             <button class="btn btn-primary px-4" type="button" (click)="newTrade()">New Trade</button>
           </div>
         </div>
-        <div class="row mb-4" *ngIf="!allowUpdateOrders">
+
+        <div class="row mb-4" *ngIf="!allowUpdateOrders && isSendButtonVisible">
           <div class="col-8">
             <button class="btn btn-primary px-4" type="button" (click)="sendTrade()">Send Trade</button>
           </div>
         </div>
-        <div class="row mb-4" *ngIf="!allowUpdateOrders">
+	
+	<div class="row mb-4" *ngIf="allowUpdateOrders">
           <div class="col-8">
-            <button class="btn btn-primary px-4" type="button" (click)="myOrders()">My Orders</button>
+            <button class="btn btn-primary px-4" type="button" (click)="filteredOrderSheet()">Filter Parameters</button>
           </div>
         </div>
-        <div class="row mb-4" *ngIf="allowUpdateOrders">
+
+	<div class="row mb-4" *ngIf="isFilterButtonVisible && allowUpdateOrders">
           <div class="col-8">
-            <button class="btn btn-primary px-4" type="button" (click)="rmOrders()">RM Orders</button>
+            <button class="btn btn-primary px-4" type="button" (click)="getFilterOrders()">Filter </button>
           </div>
         </div>
-        <div class="row mb-4">
+
+	<div class="row mb-4" >
+          <div class="col-8">
+            <button class="btn btn-primary px-4" type="button" (click)="getRMOrders()">Orders</button>
+          </div>
+        </div>
+
+	<div class="row mb-4" >
+          <div class="col-8">
+            <button class="btn btn-primary px-4" type="button" (click)="viewDetailedAllocations()">Select</button>
+          </div>
+        </div>
+
+
+	<div class="row mb-4" *ngIf="!allowUpdateOrders">
           <div class="col-8">
             <button class="btn btn-primary px-4" type="button" (click)="updateOrder()">Update Order</button>
           </div>
         </div>
+
+	<div class="row mb-4" *ngIf="allowUpdateOrders">
+          <div class="col-8">
+            <button class="btn btn-primary px-4" type="button" (click)="updateOrder()">Execute</button>
+          </div>
+        </div>
+	
+	<div class="row mb-4" >
+          <div class="col-8">
+            <button class="btn btn-primary px-4" type="button" (click)="updateStatusOrder()">Change Status</button>
+          </div>
+        </div>
         <div class="row mb-4" *ngIf="!allowUpdateOrders">
           <div class="col-8">
-            <button class="btn btn-primary px-4" type="button" (click)="deleteOrder()">Delete Order</button>
+            <button class="btn btn-primary px-4" type="button" (click)="deleteOrder()">Cancel Order</button>
           </div>
         </div>
         <div class="row mb-4">
