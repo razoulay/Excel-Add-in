@@ -106,6 +106,52 @@ class MiddlewareApi {
     }
 
 
+    getUserInfo( userName ) {
+        console.log(`get userUserInfo : ${userName}`);
+        const self = this;
+        return new Promise(function(resolve, reject) {
+            const client = new Client({
+                connectionString: self.connectionString,
+            });
+
+            client
+                .connect()
+                .then(() => {
+                    console.log('connected');
+                    const query = {
+                        text: 'select * from managers WHERE name=$1::text',
+                        values: [userName ]
+                    };
+
+                    client
+                        .query(query)
+                        .then(res => {
+                            console.log(`middleware.js:  `+res.rows[0].email);
+                            const successResponse = self.successResponse();
+                            successResponse.rows = res.rows;
+                            client.end();
+                            resolve(successResponse);
+                        }, error => {
+                                client.end();
+                                resolve(self.errorResponse(error.message));
+                            }
+                        )
+                        .catch(e => {
+                            console.error(e.stack);
+                            client.end();
+                            resolve(self.errorResponse(err.message));
+                        });
+
+                })
+                .catch(err => {
+                    console.error('connection error', err.stack);
+                    client.end();
+                    resolve(self.errorResponse(err.message));
+                }
+            );
+        });
+    }
+
     /** 
      * Returns agregated RM orders.
     */
@@ -119,11 +165,11 @@ class MiddlewareApi {
             });
 		    pool.connect()
                     console.log('connected');
-                    const columnsClause = 'orders.id AS id, orders.asset_type, orders.isin, orders.security_name, orders.side, orders.limit_price, orders.average_price ,orders.tif, orders.broker_name, orders.portfolio_manager, orders.trader_name, orders.status , orders.order_creation, orders.last_touched, orders.ts_order_date, orders.instructions, SUM(CAST(allocations.amount_ordered AS int)) AS amount_ordered';
+                    const columnsClause = 'orders.id AS id, orders.asset_type, orders.isin, orders.security_name, orders.side, orders.op_type, orders.limit_price, orders.tif, orders.portfolio_manager, orders.trader_name, orders.status, orders.instructions , orders.order_creation, orders.last_touched, orders.ts_order_date, SUM(CAST(allocations.amount_ordered AS int)) AS amount_ordered';
                     const whereClause = userToken !== '' ? ' WHERE user_token=$1::text' : '';
                     const query = {
                         text: 'select ' + columnsClause + ' from orders'  + ' INNER JOIN allocations ON orders.id = allocations.id' + whereClause +
-                            ' GROUP BY orders.id, orders.asset_type, orders.isin, orders.security_name, orders.side, orders.limit_price, orders.average_price, orders.tif, orders.broker_name, orders.portfolio_manager, orders.trader_name, orders.status, orders.order_creation, orders.last_touched, orders.ts_order_date, orders.instructions;',
+                            ' GROUP BY orders.id, orders.asset_type, orders.isin, orders.security_name, orders.side, orders.limit_price, orders.tif, orders.portfolio_manager, orders.trader_name, orders.status, orders.order_creation, orders.last_touched, orders.ts_order_date;',
                         values: userToken !== '' ? [userToken] : null
                     };
 		    
@@ -137,7 +183,8 @@ class MiddlewareApi {
                                         successResponse.rows = results.rows;
                                         successResponse.headers = self.getOrdersHeader();
                                         resolve(successResponse);
-                                        console.log("get RM orders: ")
+                                        console.log("get RM orders: ");
+					
                                 }
                     )
        });
@@ -157,7 +204,7 @@ class MiddlewareApi {
             });
                     pool.connect()
                     console.log('connected');
-                    const columnsClause = 'orders.id, allocations.account AS account, orders.asset_type, orders.isin, orders.security_name, orders.limit_price, orders.side ,orders.tif, orders.broker_name, CAST(allocations.amount_ordered AS int)';
+                    const columnsClause = 'orders.id, allocations.account AS account, allocations.broker_name AS broker_name ,orders.asset_type, orders.isin, orders.security_name, orders.op_type, orders.limit_price, orders.instructions, orders.side ,orders.tif, CAST(allocations.amount_ordered AS int)';
                     const whereClause1 = ' WHERE broker_name=$1::text' ;
 		    const whereClause2 = ' AND asset_type=$2::text' ;
 		    const whereClause3 = ' AND status=$3::text' ;
@@ -198,8 +245,8 @@ class MiddlewareApi {
             		pool.connect()
 	    		console.log('connected');
                     	const columnsClause = 
-				'allocations.order_id AS id, allocations.account, allocations.amount_ordered, orders.user_token, orders.parseketable, orders.isin, orders.op_type, orders.limit_price, orders.tif, orders.instructions, ' +
-                    		'orders.security_name, orders.side, orders.filled_name, orders.working, orders.amnt_left, orders.pct_left, orders.average_price, orders.broker_name, orders.status, orders.portfolio_manager, ' +
+				'allocations.order_id AS id, allocations.account, allocations.amount_ordered, allocations.broker_name, allocations.average_price, orders.user_token, orders.parseketable, orders.isin, orders.op_type, orders.limit_price, orders.tif, ' +
+                    		'orders.security_name, orders.side, orders.filled_name, orders.working, orders.amnt_left, orders.pct_left, orders.status, orders.portfolio_manager, orders.instructions' +
                     		'orders.trader_name, orders.order_date, orders.order_creation, orders.last_touched, orders.ts_order_date, orders.settle_date, orders.security_id, orders.order_number, orders.ticket_number, orders.order_id, orders.asset_type ';
                     	const whereClause = userToken !== '' ? ' WHERE allocations.user_token=$1::text' : '';
                     	const query = {
@@ -238,17 +285,18 @@ class MiddlewareApi {
         });
 	// console.log("entering pool")
 	var order = orders[0];
+	console.log("middleapi - order.tif: "+order.tif);
 	(async () => {
                 // note: we don't try/catch this because if connecting throws an exception
                 // we don't need to dispose of the client (it will be undefined)
                 const client = await pool.connect()
                 try {   
 			const queryText = 
-                    		'INSERT INTO orders(user_token, parseketable, isin, op_type, limit_price, tif, instructions, ' +
-                    		'security_name, side, filled_name, working, amnt_left, pct_left, average_price, broker_name, status, portfolio_manager, ' +
-                    		'trader_name, order_date, order_creation, last_touched, ts_order_date, settle_date, security_id, order_number, ticket_number, order_id, asset_type) ' +
+                    		'INSERT INTO orders(user_token, parseketable, isin, op_type, limit_price, tif, ' +
+                    		'security_name, side, filled_name, working, amnt_left, pct_left, status, portfolio_manager, ' +
+                    		'trader_name, order_date, order_creation, last_touched, ts_order_date, settle_date, security_id, order_number, ticket_number, order_id, asset_type, instructions) ' +
                     		'VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, ' +
-                    		'$11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28' +
+                    		'$11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26' +
                     		') RETURNING id'
                     	const values = 	
 				        [order.user_token,
@@ -257,15 +305,12 @@ class MiddlewareApi {
                         		order.op_type,
                         		order.limit_price,
                         		order.tif,
-                        		order.instructions,
                         		order.security_name,
                         		order.side,
                         		order.filled_name,
                         		order.working,
                         		order.amnt_left,
                         		order.pct_left,
-                        		order.average_price,
-                        		order.broker_name,
                         		order.status,
                         		order.portfolio_manager,
                         		order.trader_name,
@@ -278,15 +323,16 @@ class MiddlewareApi {
                         		order.order_number,
                         		order.ticket_number,
                         		order.order_id,
-					order.asset_type
+					order.asset_type,
+					order.instructions
                     		]
                 	
                         await client.query('BEGIN')
 			const res = await client.query(queryText, values)
                         for (let i = 0; i < orders.length; i++){
  				order = orders[i];                       	
-                        	const insertPhotoText = 'INSERT INTO allocations(account, amount_ordered, user_token, id) VALUES ($1, $2, $3, $4)'
-                        	const insertPhotoValues = [order.account, order.amount_ordered, order.user_token ,res.rows[0].id]
+                        	const insertPhotoText = 'INSERT INTO allocations(account, amount_ordered, user_token, broker_name, average_price, id) VALUES ($1, $2, $3, $4, $5, $6)'
+                        	const insertPhotoValues = [order.account, order.amount_ordered, order.user_token, order.broker_name, order.average_price, res.rows[0].id]
                         	await client.query(insertPhotoText, insertPhotoValues)
                         	await client.query('COMMIT')
                         	console.log("commited "+  res.rows[0].id)
@@ -311,6 +357,7 @@ class MiddlewareApi {
      * Updates the existing order
      */
     updateOrder(id, order) {
+	console.log("middleapi - updateorder: "+order.tif);
         // console.log(`updates the order: ${JSON.stringify(order)}`);
         const self = this;
         return new Promise(function(resolve, reject) {
@@ -325,8 +372,8 @@ class MiddlewareApi {
                 try {
                         const queryText =
                                 'UPDATE orders SET isin=$1, limit_price=$2, ' +
-                        	'tif=$3, instructions=$4, security_name=$5, average_price=$6, ' +
-                        	'trader_name=$7, last_touched=$8, ts_order_date=$9 ,status=$10 ' +
+                        	'tif=$3, security_name=$4, ' +
+                        	'trader_name=$5, last_touched=$6, ts_order_date=$7 ,status=$8, instructions=$9, op_type=$10 ' +
                         	'where id=$11 returning *'
                         const values =
                                         [
@@ -334,13 +381,13 @@ class MiddlewareApi {
                                         order.isin,
                                         order.limit_price,
                                         order.tif,
-                                        order.instructions,
                                         order.security_name,
-                                        order.average_price,
 					order.trader_name,
                                         order.last_touched,
 					order.ts_order_date,
 					order.status,
+					order.instructions,
+					order.op_type,
                                         id
                                 ]
 
@@ -366,7 +413,111 @@ class MiddlewareApi {
 
         });
     }
-	
+
+
+    /**
+     * Update allocation
+     */
+    updateAllocation(id, allocation) {
+        console.log(allocation.amount_ordered);
+        // console.log(`updates the order: ${JSON.stringify(order)}`);
+        const self = this;
+        return new Promise(function(resolve, reject) {
+            const pool = new Pool({
+                connectionString: self.connectionString,
+            });
+
+            (async () => {
+                // note: we don't try/catch this because if connecting throws an exception
+                // we don't need to dispose of the client (it will be undefined)
+                const client = await pool.connect()
+                try {
+                        const queryText =
+                                'UPDATE allocations SET amount_ordered=$1 where order_id=$2 returning id'
+                        const values =
+                                        [
+                                        allocation.amount_ordered,
+                                        id
+                                ]
+
+                        await client.query('BEGIN')
+			console.log('allocation.amount_ordered 1');
+                        const res = await client.query(queryText, values)
+			
+			//const queryAllocations = 'SELECT SUM(CAST(amount_ordered AS int)) FROM allocations where id=$1'
+                        //const queryAllocationValues = [res.rows[0].id]
+                        //const sumQuantites = await client.query(queryAllocations, queryAllocationValues)
+                        //const insertPhotoText = 'UPDATE orders SET amount_ordered=$1 where id=$2'
+                        //const insertPhotoValues = [sumQuantites, res.rows[0].id]
+                        //await client.query(insertPhotoText, insertPhotoValues)
+                        await client.query('COMMIT')
+                        console.log("commited ")
+                } catch (e) {
+                await client.query('ROLLBACK')
+                throw e
+                } finally {
+                const successResponse = self.successResponse();
+                resolve(successResponse);
+                client.release()
+
+                }
+            })().catch(e => console.error(e.stack))
+
+
+        });
+    }
+
+
+    /**
+     * The trader is booking the execution price for each account 
+     */
+    bookOrder(id, order) {
+        console.log("middleapi - bookOrder: "+order.average_price);
+        // console.log(`updates the order: ${JSON.stringify(order)}`);
+        const self = this;
+        return new Promise(function(resolve, reject) {
+            const pool = new Pool({
+                connectionString: self.connectionString,
+            });
+
+            (async () => {
+                // note: we don't try/catch this because if connecting throws an exception
+                // we don't need to dispose of the client (it will be undefined)
+                const client = await pool.connect()
+                try {
+                        const queryText =
+                                'UPDATE allocations SET average_price=$1 where order_id=$2 returning id'
+                        const values =
+                                        [
+                                        order.average_price,
+					
+                                        id
+                                ]
+
+                        await client.query('BEGIN')
+
+                        const res = await client.query(queryText, values)
+                        const insertPhotoText = 'UPDATE orders SET ts_order_date=$1 ,status=$2 where id=$3'
+                        const insertPhotoValues = [order.ts_order_date, order.status, res.rows[0].id]
+                        await client.query(insertPhotoText, insertPhotoValues)
+                        await client.query('COMMIT')
+                        console.log("commited ")
+
+
+                } catch (e) {
+                await client.query('ROLLBACK')
+                throw e
+                }  finally {
+			const successResponse = self.successResponse();
+                	resolve(successResponse);
+                	client.release()
+
+                }
+            })().catch(e => console.error(e.stack))
+
+        });
+    }
+
     deleteOrder(id)  {
         console.log(`deletes the order: ${id}`);
         const self = this;
@@ -380,8 +531,7 @@ class MiddlewareApi {
                 .then(() => {
                     const query = {
                         text: 'update orders set status=$2 where id=$1',
-                        values: [id, "CANCELED"
-                        ]
+                        values: [id, "CANCELED"]
                     };
         
                     client
@@ -430,8 +580,8 @@ class MiddlewareApi {
                 .then(() => {
                     console.log('connected');
                     const columnsClause = 
-				'allocations.order_id AS id, allocations.account, allocations.amount_ordered, orders.user_token, orders.parseketable, orders.isin, orders.op_type, orders.limit_price, orders.tif, orders.instructions, ' +
-                                'orders.security_name, orders.side, orders.filled_name, orders.working, orders.amnt_left, orders.pct_left, orders.average_price, orders.broker_name, orders.status, orders.portfolio_manager, ' +
+				'allocations.order_id AS id, allocations.account, allocations.amount_ordered, allocations.broker_name, allocations.average_price, orders.instructions, orders.user_token, orders.parseketable, orders.isin, orders.op_type, orders.limit_price, orders.tif, ' +
+                                'orders.security_name, orders.side, orders.filled_name, orders.working, orders.amnt_left, orders.pct_left, orders.status, orders.portfolio_manager, ' +
                                 'orders.trader_name, orders.order_date, orders.order_creation, orders.last_touched, orders.ts_order_date, orders.settle_date, orders.security_id, orders.order_number, orders.ticket_number, orders.order_id, orders.asset_type ';
                     const whereClause =' WHERE orders.id = $1';
                     const query = {
@@ -506,6 +656,7 @@ class MiddlewareApi {
 	    'asset_type',
             'isin',
             'amount_ordered',
+	    'op_type',
             'limit_price',
             'tif',
             'instructions',
@@ -531,6 +682,7 @@ class MiddlewareApi {
             'asset_type',
             'isin',
             'amount_ordered',
+	    'op_type',
             'limit_price',
             'tif',
             'instructions',

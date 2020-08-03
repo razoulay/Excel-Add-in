@@ -69,6 +69,28 @@ export class RestApiService {
     );
   }
 
+  
+  public getUserInfo(userName: string):  Observable<any> {
+    console.log(`getUserInfo: in restapi service `+ userName);
+    let endpoint = this.getApiMethodUrl('getUserInfo');
+    const timestamp = new Date().getTime();
+    endpoint += `?et=${timestamp}&userName=${userName}`;
+    console.log(`Calls the endpoint: ${endpoint}`);
+    const httpOptions = {
+      headers: new HttpHeaders({
+        'Content-Type':  'application/json'
+      })
+    };
+    return this.http.get<any>(endpoint, httpOptions)
+    .pipe(
+      map(response => {
+        return response;
+      }),
+      catchError(error => {
+        return this.handleError(error);
+      })
+    );
+  }
 
 
   public sendEmail(data: any): Observable<any>  {
@@ -183,24 +205,68 @@ export class RestApiService {
     );
   }
 
-  public updateOrder(order: ExtendedOrder): Observable<any>  {
-    console.log('updateOrder');
-    let endpoint = this.getApiMethodUrl('updateorder');
-    endpoint += `/${order.id}`;
-    const httpOptions = {
-      headers: new HttpHeaders({
-        'Content-Type':  'application/json'
-      })
-    };
-    return this.http.post<UserSession>(endpoint, order.serialize(), httpOptions)
-    .pipe(
-      map(response => {
-        return response;
-      }),
-      catchError(error => {
-        return this.handleError(error);
-      })
-    );
+  public updateOrder(order: ExtendedOrder, isTrader: boolean): Observable<any>  {
+    if (isTrader==false){
+	console.log('updateOrder');
+    	let endpoint = this.getApiMethodUrl('updateorder');
+    	endpoint += `/${order.id}`;
+    	const httpOptions = {
+      		headers: new HttpHeaders({
+        	'Content-Type':  'application/json'
+      		})
+    	};
+    	return this.http.post<UserSession>(endpoint, order.serialize(), httpOptions)
+    	.pipe(
+      		map(response => {
+       			return response;
+    		}),
+      		catchError(error => {
+        		return this.handleError(error);
+      		})
+    	);
+     }
+     else if(isTrader==true){
+     	console.log('updateOrder - BookOrder in restapi');
+    	let endpoint = this.getApiMethodUrl('bookOrder');
+    	endpoint += `/${order.id}`;
+    	const httpOptions = {
+      		headers: new HttpHeaders({
+        	'Content-Type':  'application/json'
+      		})
+    	};
+    	return this.http.post<UserSession>(endpoint, order.serialize(), httpOptions)
+    	.pipe(
+      		map(response => {
+       			return response;
+    		}),
+      		catchError(error => {
+        		return this.handleError(error);
+      		})
+    	);
+     }
+  }
+
+
+  public updateAllocation(allocation: ExtendedOrder): Observable<any>  {
+    
+        console.log('updateAllocation in restapi');
+        let endpoint = this.getApiMethodUrl('updateAllocation');
+        endpoint += `/${allocation.id}`;
+        const httpOptions = {
+                headers: new HttpHeaders({
+                'Content-Type':  'application/json'
+                })
+        };
+        return this.http.post<UserSession>(endpoint, allocation.serialize(), httpOptions)
+        .pipe(
+                map(response => {
+                        return response;
+                }),
+                catchError(error => {
+                        return this.handleError(error);
+                })
+        );
+     
   }
 
   public deleteOrder(id: string): Observable<any>  {

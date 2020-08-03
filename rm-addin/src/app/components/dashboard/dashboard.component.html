@@ -41,31 +41,37 @@
           </div>
         </div>
 
-	<div class="row mb-4" >
+	<div class="row mb-4" *ngIf="isSelectButtonVisible">
           <div class="col-8">
             <button class="btn btn-primary px-4" type="button" (click)="viewDetailedAllocations()">Select</button>
           </div>
         </div>
 
 
-	<div class="row mb-4" *ngIf="!allowUpdateOrders">
+	<div class="row mb-4" *ngIf="isUpdateButtonVisible">
           <div class="col-8">
             <button class="btn btn-primary px-4" type="button" (click)="updateOrder()">Update Order</button>
           </div>
         </div>
 
-	<div class="row mb-4" *ngIf="allowUpdateOrders">
+	<div class="row mb-4" *ngIf="isUpdateAllocationsVisible">
           <div class="col-8">
-            <button class="btn btn-primary px-4" type="button" (click)="updateOrder()">Execute</button>
+            <button class="btn btn-primary px-4" type="button" (click)="updateAllocations()">Update Allocations</button>
+          </div>
+        </div>
+
+	<div class="row mb-4" *ngIf="isExecuteButtonVisible && allowUpdateOrders">
+          <div class="col-8">
+            <button class="btn btn-primary px-4" type="button" (click)="updateOrder()">Book Order</button>
           </div>
         </div>
 	
-	<div class="row mb-4" >
+	<div class="row mb-4" *ngIf="isStatusButtonVisible">
           <div class="col-8">
             <button class="btn btn-primary px-4" type="button" (click)="updateStatusOrder()">Change Status</button>
           </div>
         </div>
-        <div class="row mb-4" *ngIf="!allowUpdateOrders">
+        <div class="row mb-4" *ngIf="isCancelButtonVisible && !allowUpdateOrders">
           <div class="col-8">
             <button class="btn btn-primary px-4" type="button" (click)="deleteOrder()">Cancel Order</button>
           </div>

@@ -68,6 +68,23 @@ app.get('/getUsername', function(request, response){
 });
 
 
+app.get('/getUserInfo', function(request, response){
+
+  console.log(`userInfo: : ${request.query.userName}`);        // your JSON
+  const api = new MiddlewareApi(configData.postgres_connection_string);
+  api.getUserInfo(request.query.userName)
+    .then((result) => {
+      console.log('\nresult is : ' + result);
+      response.send(result);
+  })
+  .catch((strErr) => {
+    console.error('\n!!! ERROR !!!');
+    console.error(strErr);
+    response.send(strErr);
+  });
+});
+
+
 app.get('/getFilterOrders', function(request, response){
   console.log(`AssetType : ${request.query.AssetType}`);      // your JSON
 
@@ -152,6 +169,45 @@ app.post('/order/:id', function(request, response){
   });
 });
 
+app.post('/updateAllocation/:id', function(request, response){
+  console.log("app.js - id : " +request.params.id);
+  console.log(request.body);      // your JSON
+
+  const id = parseInt(request.params.id, 10);
+  console.log("id : " + id);
+  const api = new MiddlewareApi(configData.postgres_connection_string);
+  api.updateAllocation(id, request.body)
+    .then((result) => {
+      console.log('\nresult is : ' + result);
+      response.send(result);
+  })
+  .catch((strErr) => {
+    console.error('\n!!! ERROR !!!');
+    console.error(strErr);
+    response.send(strErr);
+  });
+});
+
+app.post('/bookOrder/:id', function(request, response){
+  console.log(request.params.id);
+  console.log(request.body);      // your JSON
+
+  const id = parseInt(request.params.id, 10);
+  console.log("id : " + id);
+  const api = new MiddlewareApi(configData.postgres_connection_string);
+  api.bookOrder(id, request.body)
+    .then((result) => {
+      console.log('\nresult is : ' + result);
+      response.send(result);
+  })
+  .catch((strErr) => {
+    console.error('\n!!! ERROR !!!');
+    console.error(strErr);
+    response.send(strErr);
+  });
+});
+
+
 app.delete('/order/:id', function(request, response){
   console.log(request.params.id);
   console.log(request.body);      // your JSON
@@ -189,9 +245,9 @@ app.get('/getAllocationsByOrderId', function(request, response){
   });
 });
 
-app.post('/sendEmail_ORIGINAL', function(request, response){
- console.log("app.js - sendEmail: " )
- var transporter = nodemailer.createTransport({
+app.post('/sendEmail', function(request, response){
+ 	console.log("app.js - sendEmail: " +JSON.stringify(request.body[0])+" "+JSON.stringify(request.body[1]))
+ 	var transporter = nodemailer.createTransport({
                 service: 'Gmail',
                 auth: {
                         user: 'fgroupbp@gmail.com', // Your email id
@@ -199,7 +255,8 @@ app.post('/sendEmail_ORIGINAL', function(request, response){
                 }
         });
         var myObj = request.body;
-        var txt = "<style> table {font-family: arial, sans-serif; border-collapse: collapse; width: 100%;} td, th {order: 1px solid #00ff40;text-align: left;padding: 8px;} tr:nth-child(even) {background-color: #00ff40;} </style><table>" + " <tr> <th>Accounts</th> <th>Quantity</th> </tr>"
+        
+	var txt = "<style> table {font-family: arial, sans-serif; border-collapse: collapse; width: 100%;} td, th {order: 1px solid #00ff40;text-align: left;padding: 8px;} tr:nth-child(even) {background-color: #00ff40;} </style><table>" + " <tr> <th>Accounts</th> <th>Quantity</th> </tr>"
                 for (x in myObj) {
                         console.log(x=='rows')
                         if (x == 'rows' ){
@@ -212,12 +269,13 @@ app.post('/sendEmail_ORIGINAL', function(request, response){
                 }
         txt += "</table>"
 
-        var mailOptions = {
+        
+	var mailOptions = {
                 from: 'fgroupbp@gmail.com', // sender address
-                to: 'razoulay@ffstrategies.net', // list of receivers
-                subject: 'Message from my app', // Subject line
+                to: JSON.stringify(request.body[0]), // list of receivers
+                subject: 'Order Execusion', // Subject line
                 //text: text //, // plaintext body
-                html: txt
+                html: JSON.stringify(request.body[1])//txt
                 // html: '<b>Hello world ✔</b>' // You can choose to send an HTML body instead
         };
         transporter.sendMail(mailOptions, function(error, info){
@@ -233,13 +291,6 @@ app.post('/sendEmail_ORIGINAL', function(request, response){
 
 });
 
-app.post('/sendEmail', function(request, response){
- console.log("app.js - sendEmail: " )
- openurl.mailto(["john@example.com"],
-    { subject: "Hello!", body: "This is\nan automatically sent email!\n" });
-	
-
-});
 
 
 https.createServer({

@@ -47,9 +47,25 @@
                 },
 		{
                         "host": "https://oms.fortunet.ch/backend",
+                        "name": "getUserInfo",
+                        "method": "/getUserInfo"
+                },
+		{
+                        "host": "https://oms.fortunet.ch/backend",
                         "name": "getFilterOrders",
                         "method": "/getFilterOrders"
+                },
+		{
+                        "host": "https://oms.fortunet.ch/backend",
+                        "name": "bookOrder",
+                        "method": "/bookOrder"
+                },
+		{
+                        "host": "https://oms.fortunet.ch/backend",
+                        "name": "updateAllocation",
+                        "method": "/updateAllocation"
                 }
+		
 
 	]
 }

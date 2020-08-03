@@ -15,9 +15,15 @@ declare const Excel: any;
 export class OfficehelperService {
 
   static changedOrders: any;
+  nDay: number;
+  nMonth: number;
+  nYear: number;
 
   constructor(private dataService: DataService) {
     console.log('Officehelper service created');
+    this.nDay = 0;
+    this.nMonth = 0;
+    this.nYear = 0;
     OfficehelperService.changedOrders = new Array();
   }
 
@@ -43,27 +49,67 @@ export class OfficehelperService {
             sheet.getRange().clear();
             await context.sync();
           }
-
+	  console.log('set main headers')
           // set main headers
 	  const data = [
-	    ['Asset Type:', '', ''] ,
-	    ['Isin:', '', ''] ,
-	    ['Security name:', '', ''] ,
-	    ['Side:', '', ''] ,
-	    ['Orders sum:', '', ''] ,
-	    ['Limit Price:', '', ''] ,
-	    ['Valid:', 'Today', ''],
-	    ['Prime:', '', ''],
-            ['Allocations', '', ''],
-            ['Account', 'Quantity', 'Comment'],
+	    ['Asset Type:', '', '', ''] ,
+	    ['Isin:', '', '', ''] ,
+	    ['Security name:', '', '', ''] ,
+	    ['Side:', '', '', ''] ,
+	    ['Orders sum:', '', '', ''] ,
+	    ['Limit Type:', '', 'Limit Price:', ''] ,
+	    ['Valid:', 'Today', 'GTD:', ''],
+	    ['Comment:', '', '', ''],
+            ['Allocations', '', '', ''],
+            ['Account', 'Quantity', 'Prime', ''],
           ];
 
-          let range = sheet.getRange('A1:C10');
+          let range = sheet.getRange('A1:D10');
           range.values = data;
           range.format.font.bold = true;
           range.format.autofitColumns();
           await context.sync();
+
+	  range = sheet.getRange('A1');
+          range.format.fill.color = "#FFE4B5";
+	  await context.sync();
+
+	  range = sheet.getRange('A2');
+          range.format.fill.color = "#FFE4B5";
+	  await context.sync();
+
+	  range = sheet.getRange('A3');
+          range.format.fill.color = "#FFE4B5";
+	  await context.sync();
+
+	  range = sheet.getRange('A4');
+          range.format.fill.color = "#FFE4B5";
+	  await context.sync();
+
+	  range = sheet.getRange('A5');
+          range.format.fill.color = "#FFE4B5";
+	  await context.sync();
+
+	  range = sheet.getRange('A6');
+          range.format.fill.color = "#FFE4B5";
+	  await context.sync();
+
+	  range = sheet.getRange('A7');
+          range.format.fill.color = "#FFE4B5";
+	  await context.sync();
+
+	  range = sheet.getRange('C6');
+          range.format.fill.color = "#FFE4B5";
+	  await context.sync();
+
+	  range = sheet.getRange('C7');
+          range.format.fill.color = "#FFE4B5";
+          await context.sync();
 	  
+	  range = sheet.getRange('A8');
+          range.format.fill.color = "#FFE4B5";
+          await context.sync();	
+
 	  range = sheet.getRange('A9');
 	  range.format.fill.color = "#FFC300";
 	  await context.sync();
@@ -80,29 +126,49 @@ export class OfficehelperService {
           range.dataValidation.rule = {
             list: {
                 inCellDropDown: true,
-                source: 'Buy, Sell'
+                source: 'Buy, Sell, Buy To Open, Buy To Close, Sell To Open, Sell To Close'
             }
           };
+
+	  range = sheet.getRange('B6');
+          range.dataValidation.rule = {
+            list: {
+                inCellDropDown: true,
+                source: 'Market, Limit, Stop'
+            }
+	  };
 
           range = sheet.getRange('B7');
           range.dataValidation.rule = {
             list: {
                 inCellDropDown: true,
-                source: 'Today,GTC'
+                source: 'Today,GTD'
             }
 	  };
-
-	  range = sheet.getRange('B8');
+	 
+	  
+	  var today = new Date();
+          var dd = String(today.getDate()).padStart(2, '0');
+          var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
+	  var yyyy = String(today.getFullYear());
+          var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+	  var day = mm + '-' + dd + '-' + yyyy;
+          
+	  range = sheet.getRange('D7');
           range.dataValidation.rule = {
-            list: {
-                inCellDropDown: true,
-                source: 'PICTET, UBP, SGV'
+            date: {
+                formula1: day,
+                operator: "GreaterThanOrEqualTo"
             }
           };
-
+ 
           await context.sync();
+	  
+	  range = sheet.getRange('B8:D8');
+          range.merge(true);
+	  await context.sync();
 
-          range = sheet.getRange('A9:C9');
+          range = sheet.getRange('A9:D9');
           range.merge(true);
           await context.sync();
 
@@ -245,6 +311,20 @@ export class OfficehelperService {
           sheet.activate();
           await context.sync();
 
+	  const op_typeIndex = this.getHeaderIndex(headers, 'op_type');
+          if (op_typeIndex > 0) {
+            const columnIndex = this.toColumnName(op_typeIndex);
+            const address = `${columnIndex}2:${columnIndex}${rows.length + 1}`;
+            const range = sheet.getRange(address);
+            range.dataValidation.rule = {
+              list: {
+                  inCellDropDown: true,
+                  source: 'Market, Limit, Stop'
+              }
+            };
+	    await context.sync();
+	  }
+
           const statusIndex = this.getHeaderIndex(headers, 'status');
           if (statusIndex > 0) {
             const columnIndex = this.toColumnName(statusIndex);
@@ -256,8 +336,12 @@ export class OfficehelperService {
                   source: 'SUSPENDED, MODIFIED'
               }
             };
-	      
+	       
 	    
+	    var rowRange1 = expensesTable.columns.getItem("tif").load("values");
+            await context.sync();
+	    console.log("rowrangeTIF: "+ rowRange1.values +" rowrangeTIF length: "+rowRange1.values.length);
+
 	
 	    var rowRange = expensesTable.columns.getItem("status").load("values");
             await context.sync();
@@ -265,11 +349,20 @@ export class OfficehelperService {
 	
 	    for (let i=0; i < rowRange.values.length; i++){
 	
-		if (rowRange.values[i] == "MODIFIED" || rowRange.values[i] == "NEW"){ 
+		if (rowRange.values[i] == "EXECUTED" || rowRange.values[i] == "SUSPENDED" || rowRange.values[i] == "CANCELED"){ 
 			console.log("rowRange.values[i]: "+ rowRange.values[i] +"i: "+i);
-			expensesTable.rows.getItemAt(i-1).getRange().format.fill.color = "#FFC300"; 
+			expensesTable.rows.getItemAt(i-1).getRange().format.fill.color = "#F08080"; 
 		}
 	    }
+	    
+	    for (let i=0; i < rowRange.values.length; i++){
+
+                if (rowRange.values[i] == "WORKING"){
+                        console.log("rowRange.values[i]: "+ rowRange.values[i] +"i: "+i);
+                        expensesTable.rows.getItemAt(i-1).getRange().format.fill.color = "#FFC300";
+                }
+            }
+
           }
 		
   	  	  
@@ -330,6 +423,20 @@ export class OfficehelperService {
 
           sheet.activate();
           await context.sync();
+	  
+	  const op_typeIndex = this.getHeaderIndex(headers, 'op_type');
+          if (op_typeIndex > 0) {
+            const columnIndex = this.toColumnName(op_typeIndex);
+            const address = `${columnIndex}2:${columnIndex}${rows.length + 1}`;
+            const range = sheet.getRange(address);
+            range.dataValidation.rule = {
+              list: {
+                  inCellDropDown: true,
+                  source: 'Market, Limit, Stop'
+              }
+            };
+            await context.sync();
+	  }
 
           const statusIndex = this.getHeaderIndex(headers, 'status');
           if (statusIndex > 0) {
@@ -350,11 +457,19 @@ export class OfficehelperService {
 
             for (let i=0; i < rowRange.values.length; i++){
 
-                if (rowRange.values[i] == "MODIFIED" || rowRange.values[i] == "NEW"){
+                if (rowRange.values[i] == "EXECUTED" || rowRange.values[i] == "SUSPENDED" || rowRange.values[i] == "CANCELED" ){
+                        console.log("rowRange.values[i]: "+ rowRange.values[i] +" i: "+i);
+                        expensesTable.rows.getItemAt(i-1).getRange().format.fill.color = "#F08080";
+                }
+            }
+	    
+	    for (let i=0; i < rowRange.values.length; i++){
+
+                if (rowRange.values[i] == "WORKING"){
                         console.log("rowRange.values[i]: "+ rowRange.values[i] +" i: "+i);
                         expensesTable.rows.getItemAt(i-1).getRange().format.fill.color = "#FFC300";
                 }
-            }
+            }  
 	  }
 
           expensesTable.onChanged.add(this.onTableChanged);
@@ -404,15 +519,16 @@ export class OfficehelperService {
           const expensesTable = sheet.tables.add(`A1:${this.toColumnName(headers.length)}1`, true);
           expensesTable.name = tableName;
 
-          expensesTable.getHeaderRowRange().values = [ headers ];
+	  expensesTable.getHeaderRowRange().values = [ headers ];
 
+	  
           if (rows !== null && rows !== undefined && rows.length > 0) {
             
 		const data = this.getJsonDataAsArray(headers, rows);
 
-		console.log("TypeofData: "+ typeof(data)+ " Data: "+ data+ " order: "+order.status+ " typof order:"+ typeof(order))
+		console.log("TypeofData: "+ typeof(data)+ " Order.tif: "+ order.tif+ " order: "+order.status+ " typof order:"+ typeof(order))
 		
-		expensesTable.rows.add(null,  [ [order.id, order.account,  order.asset_type, order.isin, order.amount_ordered ,order.limit_price, order.tif, order.instructions, order.security_name, order.side, order.average_price, order.broker_name, order.status, order.portfolio_manager, order.trader_name, order.order_creation, order.last_touched, order.ts_order_date ]  ]);
+		expensesTable.rows.add(null,  [ [order.id, order.account,  order.asset_type, order.isin, order.amount_ordered , order.op_type, order.limit_price, order.tif, order.instructions, order.security_name, order.side, order.average_price, order.broker_name, order.status, order.portfolio_manager, order.trader_name, order.order_creation, order.last_touched, order.ts_order_date ]  ]);
 		
 		expensesTable.rows.add(null, data);
 	   	expensesTable.rows.getItemAt(0).getRange().format.fill.color = "#FFC300"; 
@@ -425,20 +541,21 @@ export class OfficehelperService {
 
           sheet.activate();
           await context.sync();
-
-          const statusIndex = this.getHeaderIndex(headers, 'working');
-          if (statusIndex > 0) {
-            const columnIndex = this.toColumnName(statusIndex);
+	  
+	  const op_typeIndex = this.getHeaderIndex(headers, 'op_type');
+          if (op_typeIndex > 0) {
+            const columnIndex = this.toColumnName(op_typeIndex);
             const address = `${columnIndex}2:${columnIndex}${rows.length + 1}`;
             const range = sheet.getRange(address);
             range.dataValidation.rule = {
               list: {
                   inCellDropDown: true,
-                  source: 'WORKING, MODIFIED'
+                  source: 'Market, Limit, Stop'
               }
             };
             await context.sync();
           }
+
 
           expensesTable.onChanged.add(this.onTableChanged);
           await context.sync();
@@ -482,7 +599,7 @@ export class OfficehelperService {
 
 	let values = null ;	
 	let metadata =null;
-	const range = sheet.getRange(`A1:C8`);
+	const range = sheet.getRange(`A1:D8`);
         range.load('values');
         await context.sync();
 	metadata = range.values;
@@ -493,7 +610,7 @@ export class OfficehelperService {
         console.log(`uIndex: ${uRowsIndex.rowIndex}`);
         
         if (uRowsIndex.rowIndex > 9) {
-          const range = sheet.getRange(`A11:C${uRowsIndex.rowIndex + 1}`);
+          const range = sheet.getRange(`A11:D${uRowsIndex.rowIndex + 1}`);
           range.load('values');
           await context.sync();
           values = range.values;
@@ -565,25 +682,50 @@ export class OfficehelperService {
         }
         console.log("side: "+side);
 
+	let limitType = '';
+        let limitTypeRange = sheet.getRange('B6');
+        limitTypeRange.load('values');
+        await context.sync();
+
+        if (limitTypeRange.values.length > 0) {
+                limitType = limitTypeRange.values[0][0];
+        }
+	console.log("limitType: "+limitType);
+	let checkLimit = 0;
 	let limit = '';
-        let limitRange = sheet.getRange('B6');
-        limitRange.load('values');
+	if(limitType == 'Limit' || limitType == 'Stop') {
+		checkLimit = 1;
+		
+        	let limitRange = sheet.getRange('D6');
+        	limitRange.load('values');
+        	await context.sync();
+
+        	if (limitRange.values.length > 0) {
+        	        limit = limitRange.values[0][0];
+	        }
+	}
+
+	
+        let validRange = sheet.getRange('B7');
+        validRange.load('values');
         await context.sync();
+	
+        let validType = validRange.values[0][0];
+        console.log("valid: " + validType);
+        let checkGTC = 1;
+        
+        if(validType == 'GTC') {
+                checkGTC = 0;
 
-        if (limitRange.values.length > 0) {
-                limit = limitRange.values[0][0];
+                let gtcRange = sheet.getRange('D7');
+                gtcRange.load('values');
+		await context.sync();
+
+		if (gtcRange.values[0][0] !== null && gtcRange.values[0][0] !== undefined && gtcRange.values[0][0] !== '') {
+                        checkGTC = 1;
+                }
         }
-	console.log("limit: "+limit);
 
-	let prime = '';
-        let primeRange = sheet.getRange('B8');
-        primeRange.load('values');
-        await context.sync();
-
-        if (primeRange.values.length > 0) {
-                prime = primeRange.values[0][0];
-        }
-        console.log("prime: "+prime);
 
         if (uRowsIndex.rowIndex > 9) {
           let range = sheet.getRange('C1');
@@ -598,13 +740,35 @@ export class OfficehelperService {
             range.clear();
             await context.sync();
           }
+         
+
+	  let primeCheck = sheet.getRange('G1');
+	  let temp = sheet.getRange('H1');
+	  temp.values = [[ 1 ]];
+	  await context.sync();
+	  
+	  primeCheck.formulas = [[ `=IF( ISBLANK(C${uRowsIndex.rowIndex + 1}), H1*0, H1*1)` ]];
+	  await context.sync();
+	  primeCheck.load('values');
+          await context.sync();
+
+	  
+
           
-	  if (totalSum !== null && totalSum !== undefined && totalSum !== '' && AssetType !== null && AssetType !== undefined && AssetType !== '' && isin !== null && isin !== undefined && isin !== '' && securityName !== null && securityName !== undefined && securityName !== '' && side !== null && side !== undefined && side !== '' && limit !== null && limit !== undefined && limit !== '' && prime !== null && prime !== undefined && prime !== '' ) {
+
+	  if (totalSum !== null && totalSum !== undefined && totalSum !== '' && AssetType !== null && AssetType !== undefined && AssetType !== '' && isin !== null && isin !== undefined && isin !== '' && securityName !== null && securityName !== undefined && securityName !== '' && side !== null && side !== undefined && side !== '' ) {
             range = sheet.getRange('B5');
             range.load('values');
             await context.sync();
-            allowSubmit = (range.values.length > 0 && totalSum === range.values[0][0]);
-          }
+	    allowSubmit = (range.values.length > 0 && totalSum === range.values[0][0] && primeCheck.values[0][0] === 1 && checkGTC === 1 );
+	    console.log('checkGTC: '+ checkGTC);
+	  }
+	  if (allowSubmit == true){
+	  	console.log('allowsubmit: '+ allowSubmit)
+	  	if (checkLimit == 1 && (limit == null || limit == undefined || limit == '' )){
+			allowSubmit = false;		
+		}
+	  }
 
         }
         this.completeObservable(observer, allowSubmit);
@@ -687,7 +851,7 @@ export class OfficehelperService {
     });
   }
 
-  getSelectedOrderId(): Observable<string> {
+  getSelectedOrderId(checkStatus: boolean): Observable<string> {
     console.log('Officehelper getSelectedOrderId method');
     return Observable.create(observer => {
       Excel.run(async context => {
@@ -723,9 +887,9 @@ export class OfficehelperService {
               const statusRange = sheet.getRange(address);
               statusRange.load('values');
               await context.sync();
-              if (statusRange.values !== null && statusRange.values !== undefined && statusRange.values.length > 0 
-                  && statusRange.values[0][0] !== 'EXECUTED' && statusRange.values[0][0] !== 'CANCELED') {
-                ids.push(range.values[0][0]);
+              if (statusRange.vaIlues !== null && statusRange.values !== undefined && statusRange.values.length > 0 && statusRange.values[0][0] !== 'EXECUTED' && statusRange.values[0][0] !== 'CANCELED') {
+		  if ((checkStatus && statusRange.values[0][0] !== 'WORKING') || !checkStatus )
+		  	ids.push(range.values[0][0]);
               }
             }
           }
@@ -741,7 +905,7 @@ export class OfficehelperService {
     });
   }
 
-  getChangedOrder(isRm: boolean): Observable<ExtendedOrder> {
+  getChangedOrder(isRm: boolean, allowChangeQuantitiy: boolean): Observable<ExtendedOrder> {
     console.log('Officehelper getChangedOrder method');
     return Observable.create(observer => {
       Excel.run(async context => {
@@ -777,31 +941,80 @@ export class OfficehelperService {
 		if (isTrader === 'True' && statusValue === 'SUSPENDED'){
                     passageOk = 'False';
                 }
-                if (isTrader === 'False' && statusValue === 'WORKING'){
+                if (isTrader === 'False' && (statusValue === 'WORKING' || statusValue == 'EXECUTED')){
                     passageOk = 'False';
                 }
                	console.log('passage ok: '+ passageOk);
-		if (statusValue !== 'EXECUTED' && statusValue != 'CANCELED' && passageOk === 'True' ) {
-		  
-                  const extendedOrder = new ExtendedOrder();
-                  extendedOrder.id = rowValues[0][0];
-                  extendedOrder.limit_price = rowValues[0][5];
-                  extendedOrder.instructions = rowValues[0][7];
-                  extendedOrder.security_name = rowValues[0][8];                  
+		if (statusValue != 'CANCELED' && passageOk === 'True' ) {
+
+
+		  const extendedOrder = new ExtendedOrder();
+		  extendedOrder.id = rowValues[0][0];
+		  extendedOrder.op_type = rowValues[0][5];
+                  extendedOrder.limit_price = rowValues[0][6];
+                  extendedOrder.instructions = rowValues[0][8];
+                  extendedOrder.security_name = rowValues[0][9];                  
 		  extendedOrder.isin = rowValues[0][3];
-	          extendedOrder.tif = rowValues[0][6];
-		  extendedOrder.average_price = rowValues[0][10];
-		  extendedOrder.last_touched = rowValues[0][16];
+	          extendedOrder.tif = rowValues[0][7];
+		  extendedOrder.average_price = rowValues[0][11];
+		  extendedOrder.last_touched = rowValues[0][17];
+		  extendedOrder.side = rowValues[0][10];
+
+		  if (allowChangeQuantitiy){	//Allow change quantity of allocations.
+		  	extendedOrder.amount_ordered = rowValues[0][4];
+		  }
+		  
+		  if (isTrader === 'True'){    //if its the trader that is booking order, get name of portfolio manager who issued the order.
+                        extendedOrder.portfolio_manager = rowValues[0][14];
+                  }
+
+		  if(typeof(rowValues[0][7]) === 'number'){
+                        this.ExcelSerialDateToDMY(rowValues[0][7]);
+			extendedOrder.tif = this.nMonth + '/' + this.nDay + '/' + this.nYear;
+			console.log('getChangedOrder - Tif correction: '+ extendedOrder.tif+ typeof(rowValues[0][7]));
+		  }
+		  
+ 		  if (isTrader === 'True' ) {
+                	let values = null ;
+
+                	const uRowsIndex = sheet.getCell(0, 0).getEntireColumn().getUsedRange().getLastCell().load(['rowIndex']);
+                	await context.sync();
+                	console.log(`uIndex: ${uRowsIndex.rowIndex}`);
+
+                	if (uRowsIndex.rowIndex > 1) {
+                        	const range = sheet.getRange(`L3:L${uRowsIndex.rowIndex + 1}`);
+                        	range.load('values');
+                        	await context.sync();
+                        	values = range.values;
+                        	console.log("values.length: "+ values+' ' +values.length+' '+uRowsIndex.rowIndex)
+			}
+
+			let flag = false;
+			let index = 0;
+			for (; index <= values.length; ++index) {
+			        console.log("isblank: " ) 
+				if (values[index] == '') {
+					flag = true;
+					console.log("flag: "+ flag )
+				}
+				extendedOrder.status = 'EXECUTED';	
+			}
+			
+                        if (flag == true) {
+				extendedOrder.status = 'WORKING';
+                        }	
+		  }
+		  
 		  orders.push(extendedOrder);
-		  console.log("orders[indesx]: "+typeof(extendedOrder.status)+ " " +typeof(extendedOrder.amount_ordered));
+		  console.log("average price: "+rowValues[0][11]+ '. Status: '+extendedOrder.status);
 
 		}
-
-
-			
               }
             }
-            OfficehelperService.changedOrders = new Map();
+
+
+
+	    OfficehelperService.changedOrders = new Map();
             this.completeObservable(observer, orders);
           } else {
             this.completeObservable(observer, null);
@@ -816,8 +1029,9 @@ export class OfficehelperService {
   }
 
 
+
   getSelectedOrder(isTrader, checkStatus): Observable<ExtendedOrder> {
-  console.log('Officehelper getSelectedOrder method. Check staus? ' + checkStatus);
+  console.log('Officehelper getSelectedOrder method. checkStatus ' + checkStatus);
   return Observable.create(observer => {
     Excel.run(async context => {
       let range = context.workbook.getSelectedRange();
@@ -880,7 +1094,7 @@ export class OfficehelperService {
 	      	console.log("getSelectedOrder passok " + isTrader + " " + pass_ok)
                 pass_ok = 0;
 	      }
-	
+	      	      
 
               if (expensesTable !== null && expensesTable !== undefined && pass_ok == 1 && statusRange.values !== null && statusRange.values !== undefined && statusRange.values.length > 0) {
                     
@@ -890,28 +1104,33 @@ export class OfficehelperService {
                     await context.sync();
 		    console.log("Index is (index - 2) to get item of table "+itemIndex );
                     const rowValues = rowRange.values;
-                    
+
                     const extendedOrder = new ExtendedOrder();
                     extendedOrder.id = rowValues[0][0];
                     extendedOrder.account = rowValues[0][1];
                     extendedOrder.asset_type = rowValues[0][2];
                     extendedOrder.isin = rowValues[0][3];
-                    extendedOrder.amount_ordered = rowValues[0][4];
-                    extendedOrder.limit_price = rowValues[0][5];
-                    extendedOrder.tif = rowValues[0][6];
-                    extendedOrder.instructions = rowValues[0][7];
-                    extendedOrder.security_name = rowValues[0][8];
-                    extendedOrder.side = rowValues[0][9];
-                    extendedOrder.average_price = rowValues[0][10];
-                    extendedOrder.broker_name = rowValues[0][11];
-                    extendedOrder.status = rowValues[0][12];
-                    extendedOrder.portfolio_manager = rowValues[0][13];
-                    extendedOrder.trader_name = rowValues[0][14];
-                    extendedOrder.order_creation = rowValues[0][15];
-                    extendedOrder.last_touched = rowValues[0][16];
-                    extendedOrder.ts_order_date = rowValues[0][17];
+		    extendedOrder.amount_ordered = rowValues[0][4];
+		    extendedOrder.op_type = rowValues[0][5];
+                    extendedOrder.limit_price = rowValues[0][6];
+                    extendedOrder.tif = rowValues[0][7];
+                    extendedOrder.instructions = rowValues[0][8];
+                    extendedOrder.security_name = rowValues[0][9];
+                    extendedOrder.side = rowValues[0][10];
+                    extendedOrder.average_price = rowValues[0][11];
+                    extendedOrder.broker_name = rowValues[0][12];
+                    extendedOrder.status = rowValues[0][13];
+                    extendedOrder.portfolio_manager = rowValues[0][14];
+                    extendedOrder.trader_name = rowValues[0][15];
+                    extendedOrder.order_creation = rowValues[0][16];
+                    extendedOrder.last_touched = rowValues[0][17];
+                    extendedOrder.ts_order_date = rowValues[0][18];
  
-		    
+		    if(typeof(rowValues[0][7]) === 'number'){
+                        this.ExcelSerialDateToDMY(rowValues[0][7]);
+			extendedOrder.tif = this.nMonth + '/' + this.nDay + '/' + this.nYear;
+			console.log('getSelectedOrder - Tif correction: '+ extendedOrder.tif+ typeof(rowValues[0][7]));
+                    }  
 		    orders.push(extendedOrder);
 		    console.log("orders[indesx]: "+typeof(extendedOrder.status)+ " " +typeof(extendedOrder.amount_ordered)+" "+rowValues[0][5]+" "+rowValues[0][7]);
               }
@@ -1030,4 +1249,22 @@ export class OfficehelperService {
     observer.next(result);
     observer.complete();
   }
+  
+  ExcelSerialDateToDMY(nSerialDate) {
+    console.log(`nSerialDate `+ nSerialDate);
+    // Modified Julian to DMY calculation with an addition of 2415019
+    let l = nSerialDate + 68569 + 2415019;
+    let n = Math.floor(( 4 * l ) / 146097);
+    l = l - Math.floor(( 146097 * n + 3 ) / 4);
+    let i = Math.floor(( 4000 * ( l + 1 ) ) / 1461001);
+    l = l - Math.floor(( 1461 * i ) / 4) + 31;
+    let j = Math.floor(( 80 * l ) / 2447);
+
+    console.log(`j `+ j);
+    this.nDay = l - Math.floor(( 2447 * j ) / 80);
+    l = Math.floor(j / 11);
+    this.nMonth = j + 2 - ( 12 * l );
+    this.nYear = 100 * ( n - 49 ) + i + l;
+  }
+
 }

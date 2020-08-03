@@ -25,7 +25,17 @@ export class DashboardComponent implements OnInit {
   loadingText: string;
   isFilterButtonVisible: boolean;
   isSendButtonVisible: boolean;
+  isSelectButtonVisible: boolean;
+  isExecuteButtonVisible: boolean;
+  isStatusButtonVisible: boolean;
+  isUpdateButtonVisible: boolean;
+  isCancelButtonVisible: boolean;
+  isUpdateAllocationsVisible: boolean;
 
+  nDay: number;
+  nMonth: number;
+  nYear: number;
+	
   constructor(private router: Router, private dataService: DataService, private officeHelper: OfficehelperService,
               private apiService: RestApiService) {
     console.log('DashboardComponent is created');
@@ -39,8 +49,18 @@ export class DashboardComponent implements OnInit {
       this.allowUpdateOrders = userSession.allowUpdateOrders;
       this.isFilterButtonVisible = false;
       this.isSendButtonVisible = true;
+      this.isSelectButtonVisible = false;
+      this.isExecuteButtonVisible = false;
+      this.isStatusButtonVisible = false;
+      this.isUpdateButtonVisible = false;
+      this.isCancelButtonVisible = false;
+      this.isUpdateAllocationsVisible = false;
       this.userToken = userSession.userToken;
       
+      this.nDay = 0;
+      this.nMonth = 0; 
+      this.nYear = 0;
+
       console.log('userType: '+ this.userType);      
       if (this.userType == 2) {
         this.officeHelper.newTradeSheet().subscribe((result: boolean) => {
@@ -82,6 +102,13 @@ export class DashboardComponent implements OnInit {
 
   filteredOrderSheet() {
     this.isFilterButtonVisible = true;
+    this.isSelectButtonVisible = false;
+    this.isExecuteButtonVisible = false;
+    this.isStatusButtonVisible = false;
+    this.isUpdateButtonVisible = false;
+    this.isCancelButtonVisible = false;
+    this.isUpdateAllocationsVisible = false;
+
     this.officeHelper.filteredOrderSheet().subscribe((result: boolean) => {
       console.log('filtered Sheet created successfully');
     },
@@ -169,13 +196,20 @@ export class DashboardComponent implements OnInit {
 
   getOrders() {
     this.isSendButtonVisible = false;
+    this.isSelectButtonVisible = true;
+    this.isExecuteButtonVisible = false;
+    this.isStatusButtonVisible = true;
+    this.isUpdateButtonVisible = true;
+    this.isCancelButtonVisible = true;
+    this.isUpdateAllocationsVisible = false;
+
     const self = this;
     self.loadingText = 'Loading RM Orders ...';
     self.processing = true;
     
     
-    if (this.userType == 1){
-    	console.log("it is the trader")
+    if (this.userType == 1 || this.userType == 3 || this.userType == 4){
+    	console.log("it is the trader OR the backoffice OR the SuperPower user")
         this.apiService.getOrders('').subscribe((apiResponse) => {
           console.log(`getOrders success: result = ${JSON.stringify(apiResponse)}`);
           if (!apiResponse.success) {
@@ -251,12 +285,19 @@ export class DashboardComponent implements OnInit {
   
   getRMOrders() {
     this.isSendButtonVisible = false;
+    this.isSelectButtonVisible = true;
+    this.isExecuteButtonVisible = false;
+    this.isStatusButtonVisible = true;
+    this.isUpdateButtonVisible = true;
+    this.isCancelButtonVisible = true;
+    this.isUpdateAllocationsVisible = false;
+
     const self = this;
     self.loadingText = 'Loading RM Orders ...';
     self.processing = true;
     
-    if(this.userType == 1){
-    	console.log("it is the trader")
+    if(this.userType == 1 || this.userType == 3 || this.userType == 4){
+    	console.log("it is the trader OR backoffice OR superuser")
         this.apiService.getRMOrders().subscribe((apiResponse) => {
           console.log(`getRMOrders success: result = ${JSON.stringify(apiResponse)}`);
           if (!apiResponse.success) {
@@ -334,6 +375,12 @@ export class DashboardComponent implements OnInit {
 
   newTrade() {
     this.isSendButtonVisible = true;
+    this.isStatusButtonVisible = false;
+    this.isSelectButtonVisible = false;
+    this.isUpdateButtonVisible = false;
+    this.isCancelButtonVisible = false;
+    this.isUpdateAllocationsVisible = false;
+
     this.officeHelper.newTradeSheet().subscribe((result: boolean) => {
       console.log('newTradeSheet successfully');
     },
@@ -372,16 +419,33 @@ export class DashboardComponent implements OnInit {
                 const order = new ExtendedOrder();
                 order.user_token = self.userToken;
                 order.account = orderData[0];
-                order.instructions = orderData[2];
+		order.broker_name = orderData[2];
 
                 order.asset_type = metadata[0][1];
                 order.isin = metadata[1][1];
                 order.security_name = metadata[2][1];
-                order.side = metadata[3][1];
-                order.limit_price = metadata[5][1];
-                order.tif = metadata[6][1];
-                order.broker_name = metadata[7][1];
+		order.side = metadata[3][1];
+		order.op_type = metadata[5][1];
+                order.limit_price = metadata[5][3];
+		order.instructions = metadata[7][1];
 
+		if(metadata[6][1] == "GTD"){
+		
+			this.ExcelSerialDateToDMY(metadata[6][3]);	
+	        	order.tif = this.nMonth + '/' + this.nDay + '/' + this.nYear;
+                }
+		else{
+			var today = new Date();
+		        var dd = String(today.getDate()).padStart(2, '0');
+          		var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
+          		var yyyy = String(today.getFullYear());
+          		var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+			var day = mm + '/' + dd + '/' + yyyy;
+
+			order.tif = day;
+                }
+             
+		console.log('dashboard.ts - sendOrder  order.tif: '+ typeof(order.tif));	
                 order.portfolio_manager = result.rows[0].name;
                 order.status = 'NEW';
 		
@@ -398,7 +462,8 @@ export class DashboardComponent implements OnInit {
                 var yyyy = String(today.getFullYear());
                 var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
                 var day = mm + '/' + dd + '/' + yyyy  + ' - ' + time;
-                order.order_creation = day;
+		order.order_creation = day;
+		
 
 
                 if (order.account === null || order.account === undefined || order.account === '') {
@@ -443,12 +508,14 @@ export class DashboardComponent implements OnInit {
 }
 
 
-  updateOrder() {
-  console.log('updateOrder');
+  updateOrder() { 	//To update the order. It doesnt update the allocations details such as the quantities. 
+  console.log('updateOrder in dashboard.ts');
   const self = this;
   const isTrader = this.userType == 1 ? true : false;
+  var bookOrder = false; //Trader can update order as RM. But if he fills average price field, it means he executed the order, so will route to bookOrder in backend.
+  
     this.apiService.getUsername(this.userToken).subscribe((result: any) => {
-      this.officeHelper.getChangedOrder(isTrader).subscribe((orders: any) => {
+      this.officeHelper.getChangedOrder(isTrader, false).subscribe((orders: any) => {
         if (orders === null || orders === undefined || orders.length <= 0) {
           this.errorMessage = 'You cant modify executed, working or canceled order';
           this.isError = true;
@@ -460,8 +527,10 @@ export class DashboardComponent implements OnInit {
           for (let index = 0; index < orders.length; index++) {
             const order = orders[index];
             console.log("istrader? "+ isTrader)
-          
-            order.status = isTrader ? 'EXECUTED' : 'MODIFIED';
+            
+	    if(isTrader === false) {
+            	order.status = 'MODIFIED';
+	    }
           
             var today = new Date();
             var dd = String(today.getDate()).padStart(2, '0');
@@ -469,21 +538,25 @@ export class DashboardComponent implements OnInit {
             var yyyy = String(today.getFullYear());
             var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
           
-          
-            if (isTrader) {
+
+	    if (isTrader && order.average_price != "") {
+                  bookOrder = true;
+	    }
+
+            if (isTrader && bookOrder) {
                   var day = mm + '/' + dd + '/' + yyyy + ' - ' + time;
 		  order.ts_order_date = day;
 		  order.trader_name = result.rows[0].name; 
             }
           
-            else if (!isTrader) {
+            else if (!bookOrder) {
                   var day = mm + '/' + dd + '/' + yyyy + ' - ' + time ;
 		  order.last_touched = day;
 		  order.average_price = "";
             }
+            console.log("order.average Price: "+ order.portfolio_manager);
           
-          
-            this.apiService.updateOrder(order).subscribe((result) => {
+            this.apiService.updateOrder(order, bookOrder).subscribe((result) => {
               console.log(`updateOrder success: result = ${JSON.stringify(result)}`);
               receivedResults++;
               if (receivedResults >= totalResults) {
@@ -492,7 +565,33 @@ export class DashboardComponent implements OnInit {
                   self.errorMessage = result.error;
                   self.isError = true;
                 
-                }
+		}
+		if (bookOrder){
+			this.apiService.getUserInfo(order.portfolio_manager).subscribe((result) => {
+              			console.log(`getUserInfo success: result = ${JSON.stringify(result)}`);
+              			receivedResults++;
+              			if (receivedResults >= totalResults) {
+                			self.processing = false;
+                			if (result.success !== true) {
+                  				self.errorMessage = result.error;
+                  				self.isError = true;
+
+                			}
+					var message = "Your order to "+order.side+ " "+order.security_name+" has been executed at an average price of: "+ order.average_price
+					var data = []
+					data[0] = (result.rows[0].email)
+					data[1] = message
+					self.sendEmail(data)
+
+              	 	}
+            		}, (err) => {
+              			console.log('getUserInfo failed');
+              			self.errorMessage = err.message;
+              			self.processing = false;
+              			self.isError = true;
+            		});
+		
+	      	}
               }
             }, (err) => {
               console.log('updateOrder failed');
@@ -500,7 +599,9 @@ export class DashboardComponent implements OnInit {
               self.processing = false;
               self.isError = true;
             });
-          }
+	    
+	    
+	  }
           self.getRMOrders();
         }
       },
@@ -514,12 +615,87 @@ export class DashboardComponent implements OnInit {
 }
 
 
+updateAllocations() {       //To update quantities of allocation.
+  console.log('updateAllocations in dashboard.ts');
+  const self = this;
+  const isTrader = this.userType == 1 ? true : false;
+  var bookOrder = false; //Trader can update order as RM. But if he fills average price field, it means he executed the order, so will route to bookOrder in backend.
+
+    this.apiService.getUsername(this.userToken).subscribe((result: any) => {
+      this.officeHelper.getChangedOrder(isTrader, true).subscribe((orders: any) => {
+        if (orders === null || orders === undefined || orders.length <= 0) {
+          this.errorMessage = 'You cant modify executed, working or canceled order';
+          this.isError = true;
+        } else {
+          let receivedResults = 0;
+          let totalResults = orders.length;
+          self.loadingText = 'Updateing Allocations ...';
+          self.processing = true;
+          for (let index = 0; index < orders.length; index++) {
+            const allocation = orders[index];
+            console.log("istrader? "+ isTrader)
+            
+            allocation.status = 'MODIFIED';
+          
+
+            var today = new Date();
+            var dd = String(today.getDate()).padStart(2, '0');
+            var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
+            var yyyy = String(today.getFullYear());
+            var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+
+
+          
+
+            if (isTrader) {
+                  allocation.trader_name = result.rows[0].name;
+            }
+
+            
+            var day = mm + '/' + dd + '/' + yyyy + ' - ' + time ;
+            allocation.last_touched = day;
+            
+            
+            
+	    console.log('allocation.amount_ordered: '+allocation.amount_ordered);
+            this.apiService.updateAllocation(allocation).subscribe((result) => {
+              console.log(`updateAllocation success: result = ${JSON.stringify(result)}`);
+              receivedResults++;
+              if (receivedResults >= totalResults) {
+                self.processing = false;
+                if (result.success !== true) {
+                  self.errorMessage = result.error;
+                  self.isError = true;
+
+                }
+              }
+            }, (err) => {
+              console.log('updateAllocation failed');
+              self.errorMessage = err.message;
+              self.processing = false;
+              self.isError = true;
+            });
+          }
+	  self.getRMOrders();
+	  }
+      },
+      (err) => {
+        console.log('updateAllocations failed');
+      });
+    },
+    (err) => {
+      console.log('updateAllocations failed');
+    });
+}
+
         
   updateStatusOrder() {
-
+    
     console.log('Update Order Status');
     const self = this;
     const isTrader = this.userType == 1 ? true : false;
+   
+
     this.officeHelper.getSelectedOrder(isTrader, 1).subscribe((orders: any) => {
       if (orders === null || orders === undefined || orders.length <= 0) {
         this.errorMessage = 'You cant modify executed or canceled order ';
@@ -570,7 +746,7 @@ export class DashboardComponent implements OnInit {
           	var day = mm + '/' + dd + '/' + yyyy + ' - ' + time;
           	order.last_touched = day;
 
-	  	this.apiService.updateOrder(order).subscribe((result) => {
+	  	this.apiService.updateOrder(order, false).subscribe((result) => {
             		console.log(`update Order status success: result = ${JSON.stringify(result)}`);
             		receivedResults++;
             		if (receivedResults >= totalResults) {
@@ -640,10 +816,21 @@ export class DashboardComponent implements OnInit {
 
 
   viewDetailedAllocations() {
-  	
+    
+
+    this.isExecuteButtonVisible = true; 
+    this.isSendButtonVisible = false;
+    this.isSelectButtonVisible = false;
+    this.isStatusButtonVisible = false;
+    this.isUpdateButtonVisible = false;
+    this.isCancelButtonVisible = false;
+    this.isUpdateAllocationsVisible = true;   
+
     console.log('view allocations linked to specific order');
     const self = this;
     const isTrader = this.userType == 1 ? true : false;
+    
+
     this.officeHelper.getSelectedOrder(isTrader, 0).subscribe((orders: any) => {
       if (orders === null || orders === undefined || orders.length <= 0) {
         this.errorMessage = 'You cant modify executed, suspended or canceled order ';
@@ -659,7 +846,7 @@ export class DashboardComponent implements OnInit {
 
 
 
-          console.log("order status: " + order.status + " isTrader: "+isTrader)
+          console.log("order tif: " + order.tif + " typeof: "+typeof(order.tif))
           this.apiService.getAllocationsByOrderId(order.id).subscribe((result) => {
             console.log(`getAllocationsByOrderId Order status success: result = ${JSON.stringify(result)}`);
 		try {
@@ -703,7 +890,7 @@ export class DashboardComponent implements OnInit {
 
   deleteOrder() {
     const self = this;
-    this.officeHelper.getSelectedOrderId().subscribe((success: string) => {
+    this.officeHelper.getSelectedOrderId(true).subscribe((success: string) => {
       console.log(`getSelectedOrderId returned: ${success}`);
       if (success !== null && success.length > 0) {
         self.loadingText = 'Deleting orders ...';
@@ -729,7 +916,7 @@ export class DashboardComponent implements OnInit {
         }
         self.getRMOrders();
       } else {
-        self.errorMessage = 'Select the Order with NOT EXECUTED status';
+        self.errorMessage = 'Cant cancel an order with EXECUTED or WORKING status';
         self.processing = false;
         self.isError = true;
       }
@@ -741,5 +928,22 @@ export class DashboardComponent implements OnInit {
 
   alertClosed(): void {
     this.isError = false;
+  }
+
+  ExcelSerialDateToDMY(nSerialDate) {	
+    console.log(`nSerialDate `+ nSerialDate);
+    // Modified Julian to DMY calculation with an addition of 2415019
+    let l = nSerialDate + 68569 + 2415019;
+    let n = Math.floor(( 4 * l ) / 146097);
+    l = l - Math.floor(( 146097 * n + 3 ) / 4);
+    let i = Math.floor(( 4000 * ( l + 1 ) ) / 1461001);
+    l = l - Math.floor(( 1461 * i ) / 4) + 31;
+    let j = Math.floor(( 80 * l ) / 2447);
+    
+    console.log(`j `+ j);
+    this.nDay = l - Math.floor(( 2447 * j ) / 80);
+    l = Math.floor(j / 11);
+    this.nMonth = j + 2 - ( 12 * l );
+    this.nYear = 100 * ( n - 49 ) + i + l;
   }
 }
