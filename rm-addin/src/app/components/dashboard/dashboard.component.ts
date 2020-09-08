@@ -476,7 +476,15 @@ export class DashboardComponent implements OnInit {
                 this.apiService.addOrder(orders).subscribe((result) => {
                     console.log(`addOrder success: result = ${JSON.stringify(result)}`);
                     self.getRMOrders();
-                    receivedResults++;
+		    
+		    //Send email to trader.
+		    var message = 'A new order has been recieved '
+                    var data = []
+                    data[0] = 'dchiacchiari@ffstrategies.net'
+                    data[1] = message
+                    self.sendEmail(data)
+
+		    receivedResults++;
                     if (receivedResults >= totalResults) {
                       this.processing = false;
                       if (result.success !== true) {
@@ -577,7 +585,7 @@ export class DashboardComponent implements OnInit {
                   				self.isError = true;
 
                 			}
-					var message = "Your order to "+order.side+ " "+order.security_name+" has been executed at an average price of: "+ order.average_price
+					var message = "Your order to "+order.side+ " "+order.security_name+" for "+ order.broker_name +" has been executed at an average price of: "+ order.average_price
 					var data = []
 					data[0] = (result.rows[0].email)
 					data[1] = message

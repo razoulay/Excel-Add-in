@@ -4,7 +4,7 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve --host 0.0.0.0 --port 4201 --disableHostCheck",
-    "start-ssl": "ng serve --host 0.0.0.0 --ssl true --ssl-key ssl/server.key --ssl-cert ssl/server.crt --port 4301 --disableHostCheck --baseHref /add-in/ --publicHost https://18.195.131.221:4301/",
+    "start-ssl": "ng serve --host 0.0.0.0 --ssl true --ssl-key ssl/server.key --ssl-cert ssl/server.crt --port 4301 --disableHostCheck --baseHref /add-in/ --publicHost https://test.fortunet.ch/add-in/",
     "build": "ng build",
     "test": "ng test",
     "lint": "ng lint",
@@ -32,7 +32,7 @@
     "zone.js": "~0.9.1"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "~0.803.5",
+    "@angular-devkit/build-angular": "^0.803.29",
     "@angular/cli": "~8.3.5",
     "@angular/compiler-cli": "~8.2.7",
     "@angular/language-service": "~8.2.7",

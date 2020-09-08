@@ -1,27 +1,27 @@
 {
 	"apiMethods": [
 		{
-			"host": "https://18.195.131.221:4302",
+			"host": "https://test.fortunet.ch/backend/",
 			"name": "login",
 			"method": "/login"
 		},
 		{
-			"host": "https://18.195.131.221:4302",
+			"host": "https://test.fortunet.ch/backend/",
 			"name": "addorder",
 			"method": "/order"
 		},
 		{
-			"host": "https://18.195.131.221:4302",
+			"host": "https://test.fortunet.ch/backend/",
 			"name": "orders",
 			"method": "/orders"
 		},
 		{
-			"host": "https://18.195.131.221:4302",
+			"host": "https://test.fortunet.ch/backend/",
 			"name": "deleteorder",
 			"method": "/order"
 		},
 		{
-			"host": "https://18.195.131.221:4302",
+			"host": "https://test.fortunet.ch/backend/",
 			"name": "updateorder",
 			"method": "/order"
 		}

@@ -292,7 +292,6 @@ app.post('/sendEmail', function(request, response){
 });
 
 
-
 https.createServer({
   key: fs.readFileSync('./ssl/server.key'),
   cert: fs.readFileSync('./ssl/server.crt')

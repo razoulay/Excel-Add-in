@@ -242,7 +242,7 @@ export class OfficehelperService {
           range.dataValidation.rule = {
             list: {
                 inCellDropDown: true,
-                source: 'PICTET, UBP, SGV'
+                source: 'PICTET, UBPGE, SAFRAG, SAFRAI, SAFRAL, SAFRAB, PICLUX, TURIGI, LOGI, LGTGE, JBMO, JBGE'
             }
           };
 
@@ -965,7 +965,8 @@ export class OfficehelperService {
 		  }
 		  
 		  if (isTrader === 'True'){    //if its the trader that is booking order, get name of portfolio manager who issued the order.
-                        extendedOrder.portfolio_manager = rowValues[0][14];
+		  	extendedOrder.portfolio_manager = rowValues[0][14];
+			extendedOrder.broker_name = rowValues[0][12];
                   }
 
 		  if(typeof(rowValues[0][7]) === 'number'){
