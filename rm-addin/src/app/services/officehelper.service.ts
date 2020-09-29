@@ -407,7 +407,8 @@ export class OfficehelperService {
           OfficehelperService.changedOrders = new Map();
 
           const expensesTable = sheet.tables.add(`A1:${this.toColumnName(headers.length)}1`, true);
-          expensesTable.name = 'RMOrdersTable';
+	  expensesTable.style = 'TableStyleLight13';
+	  expensesTable.name = 'RMOrdersTable';
 
           expensesTable.getHeaderRowRange().values = [ headers ];
 
@@ -417,7 +418,8 @@ export class OfficehelperService {
           }
 
           if (Office.context.requirements.isSetSupported('ExcelApi', '1.2')) {
-              sheet.getUsedRange().format.autofitColumns();
+	      sheet.getUsedRange().format.columnWidth = 100;
+	      sheet.getUsedRange().horizontalAlignment = 'Left';
               sheet.getUsedRange().format.autofitRows();
           }
 
@@ -528,7 +530,7 @@ export class OfficehelperService {
 
 		console.log("TypeofData: "+ typeof(data)+ " Order.tif: "+ order.tif+ " order: "+order.status+ " typof order:"+ typeof(order))
 		
-		expensesTable.rows.add(null,  [ [order.id, order.account,  order.asset_type, order.isin, order.amount_ordered , order.op_type, order.limit_price, order.tif, order.instructions, order.security_name, order.side, order.average_price, order.broker_name, order.status, order.portfolio_manager, order.trader_name, order.order_creation, order.last_touched, order.ts_order_date ]  ]);
+		expensesTable.rows.add(null,  [ [order.id, order.asset_type, order.op_type, order.security_name, order.isin, order.instructions, order.side, order.amount_ordered , order.limit_price, order.tif, order.account, order.average_price, order.broker_name, order.status, order.portfolio_manager, order.trader_name, order.order_creation, order.last_touched, order.ts_order_date ]  ]);
 		
 		expensesTable.rows.add(null, data);
 	   	expensesTable.rows.getItemAt(0).getRange().format.fill.color = "#FFC300"; 
@@ -982,12 +984,12 @@ export class OfficehelperService {
                 	await context.sync();
                 	console.log(`uIndex: ${uRowsIndex.rowIndex}`);
 
-                	if (uRowsIndex.rowIndex > 1) {
-                        	const range = sheet.getRange(`L3:L${uRowsIndex.rowIndex + 1}`);
+                	if (uRowsIndex.rowIndex >= 1) {
+                        	const range = sheet.getRange(`L2:L${uRowsIndex.rowIndex + 1}`);
                         	range.load('values');
                         	await context.sync();
                         	values = range.values;
-                        	console.log("values.length: "+ values+' ' +values.length+' '+uRowsIndex.rowIndex)
+				console.log("values: "+ uRowsIndex.rowIndex)
 			}
 
 			let flag = false;

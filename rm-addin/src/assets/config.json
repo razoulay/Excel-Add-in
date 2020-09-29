@@ -1,69 +1,74 @@
 {
 	"apiMethods": [
 		{
-			"host": "https://test.fortunet.ch/backend",
+			"host": "https://oms.fortunet.ch/backend",
 			"name": "login",
 			"method": "/login"
 		},
 		{
-			"host": "https://test.fortunet.ch/backend",
+			"host": "https://oms.fortunet.ch/backend",
 			"name": "addorder",
 			"method": "/order"
 		},
 		{
-			"host": "https://test.fortunet.ch/backend",
+			"host": "https://oms.fortunet.ch/backend",
 			"name": "orders",
 			"method": "/orders"
 		},
 		{
-			"host": "https://test.fortunet.ch/backend",
+			"host": "https://oms.fortunet.ch/backend",
 			"name": "deleteorder",
 			"method": "/order"
 		},
 		{
-			"host": "https://test.fortunet.ch/backend",
+			"host": "https://oms.fortunet.ch/backend",
 			"name": "updateorder",
 			"method": "/order"
 		},
 		{
-                        "host": "https://test.fortunet.ch/backend",
+                        "host": "https://oms.fortunet.ch/backend",
                         "name": "RMorders",
                         "method": "/RMorders"
                 },
 		{
-                        "host": "https://test.fortunet.ch/backend",
+                        "host": "https://oms.fortunet.ch/backend",
                         "name": "sendEmail",
                         "method": "/sendEmail"
                 },
 		{
-                        "host": "https://test.fortunet.ch/backend",
+                        "host": "https://oms.fortunet.ch/backend",
                         "name": "getAllocationsByOrderId",
                         "method": "/getAllocationsByOrderId"
                 },
 		{
-                        "host": "https://test.fortunet.ch/backend",
+                        "host": "https://oms.fortunet.ch/backend",
                         "name": "getUsername",
                         "method": "/getUsername"
                 },
 		{
-                        "host": "https://test.fortunet.ch/backend",
+                        "host": "https://oms.fortunet.ch/backend",
                         "name": "getUserInfo",
                         "method": "/getUserInfo"
                 },
 		{
-                        "host": "https://test.fortunet.ch/backend",
+                        "host": "https://oms.fortunet.ch/backend",
                         "name": "getFilterOrders",
                         "method": "/getFilterOrders"
                 },
 		{
-                        "host": "https://test.fortunet.ch/backend",
+                        "host": "https://oms.fortunet.ch/backend",
                         "name": "bookOrder",
                         "method": "/bookOrder"
                 },
 		{
-                        "host": "https://test.fortunet.ch/backend",
+                        "host": "https://oms.fortunet.ch/backend",
                         "name": "updateAllocation",
                         "method": "/updateAllocation"
+                },
+		{
+                        "host": "https://oms.fortunet.ch/backend",
+                        "name": "getOrdersByStatus",
+                        "method": "/getOrdersByStatus"
                 }
 		
 

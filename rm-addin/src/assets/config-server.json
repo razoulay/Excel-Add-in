@@ -1,27 +1,27 @@
 {
 	"apiMethods": [
 		{
-			"host": "https://test.fortunet.ch/backend/",
+			"host": "https://oms.fortunet.ch/backend/",
 			"name": "login",
 			"method": "/login"
 		},
 		{
-			"host": "https://test.fortunet.ch/backend/",
+			"host": "https://oms.fortunet.ch/backend/",
 			"name": "addorder",
 			"method": "/order"
 		},
 		{
-			"host": "https://test.fortunet.ch/backend/",
+			"host": "https://oms.fortunet.ch/backend/",
 			"name": "orders",
 			"method": "/orders"
 		},
 		{
-			"host": "https://test.fortunet.ch/backend/",
+			"host": "https://oms.fortunet.ch/backend/",
 			"name": "deleteorder",
 			"method": "/order"
 		},
 		{
-			"host": "https://test.fortunet.ch/backend/",
+			"host": "https://oms.fortunet.ch/backend/",
 			"name": "updateorder",
 			"method": "/order"
 		}

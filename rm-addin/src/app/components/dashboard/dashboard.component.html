@@ -22,10 +22,16 @@
             <button class="btn btn-primary px-4" type="button" (click)="sendTrade()">Send Trade</button>
           </div>
         </div>
-	
+
+	<div class="row mb-4" *ngIf="isNotificationButtonVisible">
+          <div class="col-8">
+            <button class="btn btn-primary px-4" type="button" (click)="sendNotification()">Send Notification</button>
+          </div>
+        </div>
+
 	<div class="row mb-4" *ngIf="allowUpdateOrders">
           <div class="col-8">
-            <button class="btn btn-primary px-4" type="button" (click)="filteredOrderSheet()">Filter Parameters</button>
+            <button class="btn btn-primary px-4" type="button" (click)="getWorkingOrders()">Working Orders</button>
           </div>
         </div>
 

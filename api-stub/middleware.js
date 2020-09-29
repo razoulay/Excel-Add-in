@@ -231,6 +231,45 @@ class MiddlewareApi {
     }
 
 
+    /**
+     * Returns orders with specific status.
+    */
+    getOrdersByStatus(stat) {
+        console.log('get filter by: '+ stat);
+        const self = this;
+
+        return new Promise(function(resolve, reject) {
+            const pool = new Pool({
+                connectionString: self.connectionString,
+            });
+                    pool.connect()
+                    console.log('connected');
+                    const columnsClause = ' allocations.account AS account, orders.isin AS isin, orders.security_name AS ticker, orders.op_type AS type, orders.limit_price AS price, orders.instructions AS ccy, orders.side AS side ,orders.tif AS valid, CAST(allocations.amount_ordered AS int) AS size';
+
+                    
+                    
+                    const query = {
+                        text: 'select ' + columnsClause + ' from orders'  + ' INNER JOIN allocations ON orders.id = allocations.id WHERE status=$1',
+                        values: [stat]
+                    };
+
+                    pool.query(query,
+                                (error, results) => {
+                                        if (error) {
+                                                console.log("Error! getOrdersBystatus")
+                                                reject(error);
+                                        }
+                                        const successResponse = self.successResponse();
+                                        successResponse.rows = results.rows;
+                                        successResponse.headers = self.getFilterOrdersHeader();
+                                        resolve(successResponse);
+                                        console.log("get filtered orders: ")
+                                }
+                    )
+       });
+    }
+
+
 
     /** 
      * Returns all user 's orders
@@ -357,7 +396,7 @@ class MiddlewareApi {
      * Updates the existing order
      */
     updateOrder(id, order) {
-	console.log("middleapi - updateorder: "+order.tif);
+	console.log("middleapi - updateorder: "+order.amount_ordered);
         // console.log(`updates the order: ${JSON.stringify(order)}`);
         const self = this;
         return new Promise(function(resolve, reject) {
@@ -394,9 +433,9 @@ class MiddlewareApi {
                         await client.query('BEGIN')
 
                         const res = await client.query(queryText, values)
-                        // const insertPhotoText = 'UPDATE allocations SET account=$1, amount_ordered=$2, where id=$3)'
-                        // const insertPhotoValues = [order.account, order.amount_ordered, id]
-                        // await client.query(insertPhotoText, insertPhotoValues)
+                        const insertPhotoText = 'UPDATE allocations SET amount_ordered=$1 where id=$2'
+                        const insertPhotoValues = [order.amount_ordered, id]
+                        await client.query(insertPhotoText, insertPhotoValues)
                         await client.query('COMMIT')
                         console.log("commited ")
                 } catch (e) {
@@ -677,18 +716,16 @@ class MiddlewareApi {
 
     getFilterOrdersHeader() {
         const data = [
-            'id',
-	    'account',
-            'asset_type',
+            'ticker',
             'isin',
-            'amount_ordered',
-	    'op_type',
-            'limit_price',
-            'tif',
-            'instructions',
-            'security_name',
-            'side',
-            'broker_name'
+	    'ccy',
+	    'side',
+	    'size',
+	    'type',
+            'price',
+            'valid',
+            'account'
+            
         ];
         return data;
     }

@@ -159,6 +159,28 @@ export class RestApiService {
     );
   }
 
+  public getOrdersByStatus(status): Observable<any>  {
+    console.log('get orders by status restapi');
+    let endpoint = this.getApiMethodUrl('getOrdersByStatus');
+        const timestamp = new Date().getTime();
+    endpoint += `?et=${timestamp}&status=${status}`;
+    console.log(`Calls the endpoint: ${endpoint}`);
+    const httpOptions = {
+      headers: new HttpHeaders({
+        'Content-Type':  'application/json'
+      })
+    };
+    return this.http.get<any>(endpoint, httpOptions)
+    .pipe(
+      map(response => {
+        return response;
+      }),
+      catchError(error => {
+        return this.handleError(error);
+      })
+    );
+  }
+
 
   public getOrders(userToken: string): Observable<any>  {
     console.log(`getMyOrders: userToken is: ${userToken}`);

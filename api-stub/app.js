@@ -102,6 +102,22 @@ app.get('/getFilterOrders', function(request, response){
 });
 
 
+app.get('/getOrdersByStatus', function(request, response){
+  console.log(`getOrdersByStatus app.js`);      // your JSON
+
+  const api = new MiddlewareApi(configData.postgres_connection_string);
+  api.getOrdersByStatus(request.query.status)
+    .then((result) => {
+      console.log('\nresult is : ' + result);
+      response.send(result);
+  })
+  .catch((strErr) => {
+    console.error('\n!!! ERROR !!!');
+    console.error(strErr);
+    response.send(strErr);
+  });
+});
+
 app.get('/orders', function(request, response){
   console.log(`userToken : ${request.query.userToken}`);      // your JSON
 

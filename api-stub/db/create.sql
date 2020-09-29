@@ -69,8 +69,8 @@ GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO rmaddin;
 
 INSERT INTO public.managers(
 	name, password, email, user_token, allow_update_orders, userType)
-	VALUES ('admin', 'admin', 'razoulay@ffstrategies.net', '66B3B68E-84B2-4F96-984B-8F9C81A90BCA', True, 1);
+	VALUES ('dario20', 'trader20', 'dchiacchiari@ffstrategies.net', '66B3B68E-84B2-4F96-984B-8F9C81A90BCA', True, 1);
 	
 INSERT INTO public.managers(
 	name, password, email, user_token, allow_update_orders, userType)
-	VALUES ('test', 'test', 'razoulay@ffstrategies.net','56B3B68E-84B2-4F96-984B-8F9C81A90BCD', False, 2);
+	VALUES ('dacher', 'support20', 'dacher@fortunesupport.net','56B3B68E-84B2-4F96-984B-8F9C81A90BCD', False, 2);

@@ -31,6 +31,7 @@ export class DashboardComponent implements OnInit {
   isUpdateButtonVisible: boolean;
   isCancelButtonVisible: boolean;
   isUpdateAllocationsVisible: boolean;
+  isNotificationButtonVisible: boolean;
 
   nDay: number;
   nMonth: number;
@@ -55,6 +56,7 @@ export class DashboardComponent implements OnInit {
       this.isUpdateButtonVisible = false;
       this.isCancelButtonVisible = false;
       this.isUpdateAllocationsVisible = false;
+      this.isNotificationButtonVisible = true;
       this.userToken = userSession.userToken;
       
       this.nDay = 0;
@@ -99,6 +101,28 @@ export class DashboardComponent implements OnInit {
 
   }
   
+  sendNotification() {
+
+    console.log('send notification to operational - dashboard.ts');
+    const self = this;
+    const isTrader = this.userType == 1 ? true : false;
+
+    if(isTrader){
+    	var message = "Your orders have been executed."
+        var data = []
+        data[0] = "dacher@fortunesupport.net"
+        data[1] = message
+        self.sendEmail(data)	
+    }
+    else{
+    	var message = "New orders have arrived."
+        var data = []
+        data[0] = "dchiacchiari@ffstrategies.net"
+        data[1] = message
+        self.sendEmail(data)
+    }
+  }
+
 
   filteredOrderSheet() {
     this.isFilterButtonVisible = true;
@@ -191,6 +215,51 @@ export class DashboardComponent implements OnInit {
       console.log('checkNewTrade failed');
     });
     this.isFilterButtonVisible = false;
+  }
+
+
+  getWorkingOrders() {
+
+
+                const self = this;
+                self.loadingText = 'Loading Filtered Working Orders ...';
+                self.processing = true;
+
+
+                this.apiService.getOrdersByStatus('WORKING').subscribe((apiResponse) => {
+                    console.log(`get working orders success: result = ${JSON.stringify(apiResponse)}`);
+                    if (!apiResponse.success) {
+                    self.errorMessage = apiResponse.error;
+                    self.processing = false;
+                    self.isError = true;
+                    } else {
+                            try {
+                                    this.officeHelper.createRMOrdersSheet(apiResponse.headers, apiResponse.rows).subscribe((result: boolean) => {
+                                    console.log('createRMOrdersSheet successfully');
+                                    self.processing = false;
+                                    },
+                                    (err) => {
+                                            console.log('createRMOrdersSheet failed');
+                                            self.errorMessage = err.message;
+                                            self.processing = false;
+                                            self.isError = true;
+                                    },
+                                    () => {
+                                            self.processing = false;
+                                    });
+                            } catch (e) {
+                                    self.errorMessage = e.message;
+                                    self.processing = false;
+                                    self.isError = true;
+                            }
+                    }
+                }, (err) => {
+                    console.log('Get working orders failed');
+                    this.errorMessage = err.message;
+                    this.processing = false;
+                    this.isError = true;
+                });
+                  
   }
 
 
@@ -482,7 +551,7 @@ export class DashboardComponent implements OnInit {
                     var data = []
                     data[0] = 'dchiacchiari@ffstrategies.net'
                     data[1] = message
-                    self.sendEmail(data)
+		    //self.sendEmail(data)
 
 		    receivedResults++;
                     if (receivedResults >= totalResults) {
@@ -523,7 +592,7 @@ export class DashboardComponent implements OnInit {
   var bookOrder = false; //Trader can update order as RM. But if he fills average price field, it means he executed the order, so will route to bookOrder in backend.
   
     this.apiService.getUsername(this.userToken).subscribe((result: any) => {
-      this.officeHelper.getChangedOrder(isTrader, false).subscribe((orders: any) => {
+      this.officeHelper.getChangedOrder(isTrader, true).subscribe((orders: any) => {
         if (orders === null || orders === undefined || orders.length <= 0) {
           this.errorMessage = 'You cant modify executed, working or canceled order';
           this.isError = true;
@@ -554,7 +623,8 @@ export class DashboardComponent implements OnInit {
             if (isTrader && bookOrder) {
                   var day = mm + '/' + dd + '/' + yyyy + ' - ' + time;
 		  order.ts_order_date = day;
-		  order.trader_name = result.rows[0].name; 
+		  order.trader_name = result.rows[0].name;
+		  order.status = 'EXECUTED'; 
             }
           
             else if (!bookOrder) {
@@ -562,7 +632,7 @@ export class DashboardComponent implements OnInit {
 		  order.last_touched = day;
 		  order.average_price = "";
             }
-            console.log("order.average Price: "+ order.portfolio_manager);
+            console.log("order.average Price: "+ bookOrder);
           
             this.apiService.updateOrder(order, bookOrder).subscribe((result) => {
               console.log(`updateOrder success: result = ${JSON.stringify(result)}`);
@@ -589,7 +659,7 @@ export class DashboardComponent implements OnInit {
 					var data = []
 					data[0] = (result.rows[0].email)
 					data[1] = message
-					self.sendEmail(data)
+					//self.sendEmail(data)
 
               	 	}
             		}, (err) => {
@@ -784,7 +854,7 @@ updateAllocations() {       //To update quantities of allocation.
 
   sendOrderToBank() {
 
-    console.log('send order to bank function');
+    console.log('send order to bank - dashboard.ts');
     const self = this;
     const isTrader = this.userType == 1 ? true : false;
     this.officeHelper.getSelectedOrder(isTrader, 1).subscribe((orders: any) => {
@@ -808,7 +878,7 @@ updateAllocations() {       //To update quantities of allocation.
             this.sendEmail(result);   
            
           }, (err) => {
-            console.log('update status Order failed');
+            console.log('send order to bank failed');
             self.errorMessage = err.message;
             self.processing = false;
             self.isError = true;
