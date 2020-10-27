@@ -136,7 +136,26 @@ export class RestApiService {
     );
   }
 
-
+  public addBulkOrder(orders: any): Observable<any>  {
+    console.log(`addBulkOrder: Order is: {order.serialize()}`);
+    const endpoint = this.getApiMethodUrl('addbulkorder');
+    console.log(`Calls the endpoint: ${endpoint}`);
+    const httpOptions = {
+      headers: new HttpHeaders({
+        'Content-Type':  'application/json'
+      })
+    };
+    return this.http.post<UserSession>(endpoint, JSON.stringify(orders) , httpOptions)
+    .pipe(
+      map(response => {
+        return response;
+      }),
+      catchError(error => {
+        return this.handleError(error);
+      })
+    );
+  }
+  
   public getFilterOrders(Bank, AssetType): Observable<any>  {
     console.log('get filtered orders');
     let endpoint = this.getApiMethodUrl('getFilterOrders');

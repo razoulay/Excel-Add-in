@@ -27,6 +27,112 @@ export class OfficehelperService {
     OfficehelperService.changedOrders = new Array();
   }
 
+
+  /**
+   * Initializes bulk tradesheet
+   */
+  bulkTradeSheet(): Observable<boolean> {
+    console.log('Officehelper bulkTradeSheet method');
+    return Observable.create(observer => {
+      if (Office.context !== undefined && Office.context != null) {
+        Excel.run(async context => {
+          const sheetName = 'Bulk Trade';
+          const sheets = context.workbook.worksheets;
+          sheets.load('items/name');
+          await context.sync();
+          let sheet = this.getWorksheetByName(sheets, sheetName);
+          if (sheet === null || sheet === undefined) {
+            console.log(`Sheet with name ${sheetName} not found`);
+            sheet = sheets.add(sheetName);
+            sheet.load('name, position');
+            await context.sync();
+          } else {
+            sheet.getRange().clear();
+            await context.sync();
+          }
+          console.log('set main headers')
+          // set main headers
+          const data = [
+            ['Asset Type' , 'Isin', 'Security name', 'Side', 'Currency', 'Quantity', 'Limit Type', 'Limit Price', 'Valid', 'Account', 'Prime'] 
+            
+          ];
+
+          let range = sheet.getRange('A1:K1');
+          range.values = data;
+          range.format.font.bold = true;
+          range.format.columnWidth = 85;
+          await context.sync();
+
+          range = sheet.getRange('A1');
+          range.format.fill.color = "#FFE4B5";
+          await context.sync();
+
+          range = sheet.getRange('B1');
+          range.format.fill.color = "#FFE4B5";
+          await context.sync();
+
+          range = sheet.getRange('C1');
+          range.format.fill.color = "#FFE4B5";
+          await context.sync();
+
+          range = sheet.getRange('D1');
+          range.format.fill.color = "#FFE4B5";
+          await context.sync();
+
+          range = sheet.getRange('E1');
+          range.format.fill.color = "#FFE4B5";
+	  await context.sync();
+
+	  range = sheet.getRange('F1');
+          range.format.fill.color = "#FFE4B5";
+          await context.sync();
+
+          range = sheet.getRange('G1');
+          range.format.fill.color = "#FFE4B5";
+          await context.sync();
+
+          range = sheet.getRange('H1');
+          range.format.fill.color = "#FFE4B5";
+          await context.sync();
+
+          range = sheet.getRange('I1');
+          range.format.fill.color = "#FFE4B5";
+          await context.sync();
+
+          range = sheet.getRange('J1');
+          range.format.fill.color = "#FFE4B5";
+	  await context.sync();
+
+	  range = sheet.getRange('K1');
+          range.format.fill.color = "#FFE4B5";
+          await context.sync();
+
+	  
+	  var today = new Date();
+          var dd = String(today.getDate()).padStart(2, '0');
+          var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
+          var yyyy = String(today.getFullYear());
+          var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+          var day = mm + '-' + dd + '-' + yyyy;
+
+
+          range = sheet.getRange('A1');
+          range.select();
+          await context.sync();
+
+          this.completeObservable(observer, true);
+        })
+        .catch(error => {
+          console.log(`Error: ${error}`);
+          throw Observable.throw(error);
+        });
+      } else {
+        this.completeObservable(observer, false);
+      }
+    });
+  }
+
+
   /**
    * Initializes the new Trade Sheet
    */
@@ -59,7 +165,7 @@ export class OfficehelperService {
 	    ['Orders sum:', '', '', ''] ,
 	    ['Limit Type:', '', 'Limit Price:', ''] ,
 	    ['Valid:', 'Today', 'GTD:', ''],
-	    ['Comment:', '', '', ''],
+	    ['Comments:', '', '', ''],
             ['Allocations', '', '', ''],
             ['Account', 'Quantity', 'Prime', ''],
           ];
@@ -134,7 +240,7 @@ export class OfficehelperService {
           range.dataValidation.rule = {
             list: {
                 inCellDropDown: true,
-                source: 'Market, Limit, Stop'
+                source: 'Market, Limit, NAV, Stop'
             }
 	  };
 
@@ -365,7 +471,7 @@ export class OfficehelperService {
 
           }
 		
-  	  	  
+  	   	  
           expensesTable.onChanged.add(this.onTableChanged);
           await context.sync();
 
@@ -385,7 +491,7 @@ export class OfficehelperService {
    * Creates RM Orders sheet
    */
   createRMOrdersSheet(headers: any, rows: any): Observable<boolean> {
-    console.log('Officehelper RMOrders method');
+    console.log('Officehelper RMOrders method '+headers.length+ ' '+ rows.length);
     return Observable.create(observer => {
       if (Office.context !== undefined && Office.context != null) {
         Excel.run(async context => {
@@ -412,20 +518,32 @@ export class OfficehelperService {
 
           expensesTable.getHeaderRowRange().values = [ headers ];
 
-          if (rows !== null && rows !== undefined && rows.length > 0) {
-            const data = this.getJsonDataAsArray(headers, rows);
-            expensesTable.rows.add(null, data);
+	  const data = this.getJsonDataAsArray(headers, rows);
+	  if (rows !== null && rows !== undefined && rows.length > 0) {
+	        if(headers.length == 11){
+	  		console.log(data[0][6]+' first: '+data[0][7])
+	        	for (let i=0; i < data.length; i++){
+        	        	if(data[i][6] == 'Market'){
+                	        	data[i][7] = data[i][6]
+                        		console.log(data[0][6]+' again: '+data[i][7])
+                		}
+          		}
+		}
+		expensesTable.rows.add(null, data);
+		if(headers.length == 11){
+	     		expensesTable.columns.getItemAt(6).delete()
+		}	
           }
 
           if (Office.context.requirements.isSetSupported('ExcelApi', '1.2')) {
 	      sheet.getUsedRange().format.columnWidth = 100;
-	      sheet.getUsedRange().horizontalAlignment = 'Left';
-              sheet.getUsedRange().format.autofitRows();
+	      sheet.getUsedRange().horizontalAlignment = 'Left'; 
           }
 
           sheet.activate();
-          await context.sync();
-	  
+	  await context.sync();
+
+
 	  const op_typeIndex = this.getHeaderIndex(headers, 'op_type');
           if (op_typeIndex > 0) {
             const columnIndex = this.toColumnName(op_typeIndex);
@@ -473,8 +591,19 @@ export class OfficehelperService {
                 }
             }  
 	  }
+	  
+	  sheet.getUsedRange().format.borders.getItem("InsideHorizontal").style = 'Continuous';
+	  sheet.getUsedRange().format.borders.getItem("InsideVertical").style = 'Continuous';
+	  sheet.getUsedRange().format.borders.getItem("EdgeBottom").style = 'Continuous';
+	  sheet.getUsedRange().format.borders.getItem("EdgeLeft").style = 'Continuous';
+	  sheet.getUsedRange().format.borders.getItem("EdgeRight").style = 'Continuous';
+	  sheet.getUsedRange().format.borders.getItem("EdgeTop").style = 'Continuous';
+	  await context.sync();
+          
 
-          expensesTable.onChanged.add(this.onTableChanged);
+	  
+	  sheet.getUsedRange().NumberFormat  = 'Decimal';
+	  expensesTable.onChanged.add(this.onTableChanged);
           await context.sync();
 
           this.completeObservable(observer, true);
@@ -493,7 +622,7 @@ export class OfficehelperService {
   createDetailedRMOrdersSheet(headers: any, rows:any , order: any, isTrader: boolean): Observable<boolean>{
   
   
-    console.log('createDetailedRMOrdersSheet method');
+    console.log('createDetailedRMOrdersSheet method '+order);
     return Observable.create(observer => {
       if (Office.context !== undefined && Office.context != null) {
         Excel.run(async context => {
@@ -516,8 +645,7 @@ export class OfficehelperService {
             await context.sync();
           }
 
-          OfficehelperService.changedOrders = new Map();
-
+          OfficehelperService.changedOrders = new Map()
           const expensesTable = sheet.tables.add(`A1:${this.toColumnName(headers.length)}1`, true);
           expensesTable.name = tableName;
 
@@ -528,9 +656,9 @@ export class OfficehelperService {
             
 		const data = this.getJsonDataAsArray(headers, rows);
 
-		console.log("TypeofData: "+ typeof(data)+ " Order.tif: "+ order.tif+ " order: "+order.status+ " typof order:"+ typeof(order))
+		console.log("Data: "+ data+ " Order.account: "+ order.tif+ " order: "+order.status+ " typof order:"+ typeof(order))
 		
-		expensesTable.rows.add(null,  [ [order.id, order.asset_type, order.op_type, order.security_name, order.isin, order.instructions, order.side, order.amount_ordered , order.limit_price, order.tif, order.account, order.average_price, order.broker_name, order.status, order.portfolio_manager, order.trader_name, order.order_creation, order.last_touched, order.ts_order_date ]  ]);
+		expensesTable.rows.add(null,  [ [order.id, order.account, order.asset_type, order.isin, order.amount_ordered, order.op_type, order.limit_price, order.tif, order.instructions, order.security_name, order.side, order.average_price, order.broker_name, order.status, order.portfolio_manager, order.trader_name, order.order_creation, order.last_touched, order.ts_order_date ]  ]);
 		
 		expensesTable.rows.add(null, data);
 	   	expensesTable.rows.getItemAt(0).getRange().format.fill.color = "#FFC300"; 
@@ -589,6 +717,262 @@ export class OfficehelperService {
         return context.sync();
     });
   }
+
+  /**
+   * Returns the trafde data entered in the sheet
+   */
+  getNewBulkData(): Observable<any> {
+    console.log('Officehelper getNewBulkData method');
+    return Observable.create(observer => {
+      Excel.run(async context => {
+        const sheet = context.workbook.worksheets.getActiveWorksheet();
+
+        let values = null ;
+        let metadata =null;
+        const range = sheet.getRange(`A1:K1`);
+        range.load('values');
+        await context.sync();
+        metadata = range.values;
+        console.log("metadata: "+metadata);
+
+        const uRowsIndex = sheet.getCell(0, 0).getEntireColumn().getUsedRange().getLastCell().load(['rowIndex']);
+        await context.sync();
+        console.log(`uIndex: ${uRowsIndex.rowIndex}`);
+
+        if (uRowsIndex.rowIndex > 0) {
+          const range = sheet.getRange(`A2:K${uRowsIndex.rowIndex + 1}`);
+          range.load('values');
+          await context.sync();
+          values = range.values;
+          console.log("values: "+ values)
+        }
+        let valuesTemp = [];
+        valuesTemp[0] = metadata;
+        valuesTemp[1] = values;
+
+        this.completeObservable(observer, valuesTemp);
+      })
+      .catch(error => {
+        console.log(`Error: ${error}`);
+        throw Observable.throw(error);
+      });
+    });
+  }
+
+
+  /**
+   * Checks is the new trade data ready to submit
+   */
+  checkBulkTrade(): Observable<boolean> {
+    console.log('Officehelper CheckBulkTrade method');
+    return Observable.create(observer => {
+      Excel.run(async context => {
+        const sheet = context.workbook.worksheets.getActiveWorksheet();
+        const uRowsIndex = sheet.getCell(0, 0).getEntireColumn().getUsedRange().getLastCell().load(['rowIndex']);
+        await context.sync();
+        console.log(`uIndex: ${uRowsIndex.rowIndex}`);
+	let allowSubmit = false;
+
+	let assetTypeCheck = sheet.getRange('R1');
+        let temp = sheet.getRange('T1');
+        temp.values = [[ 1 ]];
+        await context.sync();
+
+        assetTypeCheck.formulas = [[ `=IF( ISBLANK(B${uRowsIndex.rowIndex + 1}), T1*0, T1*1)` ]];
+        await context.sync();
+        assetTypeCheck.load('values');
+	await context.sync();
+	
+	let assetTypeCheck2 = 1;
+        if (uRowsIndex.rowIndex > 0) {
+          const range = sheet.getRange(`A2:A${uRowsIndex.rowIndex + 1}`);
+          range.load('values');
+          await context.sync();
+          let values = range.values;
+          console.log("values: "+ values)
+
+          for (let index = 0; index < values.length; index++) {
+                if(values[index] != "Equity" && values[index] != "equity" && values[index] != "Bonds" && values[index] != "bonds" && values[index] != "Mutual Fund" && values[index] != "mutual fund" && values[index] != "Hedge Fund" && values[index] != "hedge fund" && values[index] != "Options" && values[index] != "options" && values[index] != "Futures" && values[index] != "futures" ){
+                                assetTypeCheck2 = 0;
+                }
+          }
+	}
+
+
+	let isinCheck = sheet.getRange('R1');
+        temp = sheet.getRange('T1');
+        temp.values = [[ 1 ]];
+        await context.sync();
+
+        isinCheck.formulas = [[ `=IF( ISBLANK(B${uRowsIndex.rowIndex + 1}), T1*0, T1*1)` ]];
+        await context.sync();
+        isinCheck.load('values');
+	await context.sync();
+
+
+	let securityNameCheck = sheet.getRange('R1');
+        temp = sheet.getRange('T1');
+        temp.values = [[ 1 ]];
+        await context.sync();
+
+        securityNameCheck.formulas = [[ `=IF( ISBLANK(C${uRowsIndex.rowIndex + 1}), T1*0, T1*1)` ]];
+        await context.sync();
+        securityNameCheck.load('values');
+	await context.sync();
+
+
+	let sideCheck = sheet.getRange('R1');
+        temp = sheet.getRange('T1');
+        temp.values = [[ 1 ]];
+        await context.sync();
+
+        sideCheck.formulas = [[ `=IF( ISBLANK(D${uRowsIndex.rowIndex + 1}), T1*0, T1*1)` ]];
+        await context.sync();
+        sideCheck.load('values');
+	await context.sync();
+	
+	let sideCheck2 = 1;
+	if (uRowsIndex.rowIndex > 0) {
+          const range = sheet.getRange(`D2:D${uRowsIndex.rowIndex + 1}`);
+          range.load('values');
+          await context.sync();
+          let values = range.values;
+	  console.log("values: "+ values)	
+	  
+	  for (let index = 0; index < values.length; index++) {
+	  	if(values[index] != "Buy" && values[index] != "BUY" && values[index] != "SELL" && values[index] != "buy" && values[index] != "Sell" && values[index] != "sell" && values[index] != "Buy To Open" && values[index] != "buy to open" && values[index] != "Buy To Close" && values[index] != "buy to close" && values[index] != "sell To Open" && values[index] != "sell to open" && values[index] != "Sell To Close" && values[index] != "sell to close" ){
+                        	sideCheck2 = 0;
+          	}
+	  }
+	} 
+        
+
+
+
+	let currencyCheck = sheet.getRange('R1');
+        temp = sheet.getRange('T1');
+        temp.values = [[ 1 ]];
+        await context.sync();
+
+        currencyCheck.formulas = [[ `=IF( ISBLANK(E${uRowsIndex.rowIndex + 1}), T1*0, T1*1)` ]];
+        await context.sync();
+        currencyCheck.load('values');
+	await context.sync();
+
+
+	let quantityCheck = sheet.getRange('R1');
+        temp = sheet.getRange('T1');
+        temp.values = [[ 1 ]];
+        await context.sync();
+
+        quantityCheck.formulas = [[ `=IF( ISBLANK(F${uRowsIndex.rowIndex + 1}), T1*0, T1*1)` ]];
+        await context.sync();
+        quantityCheck.load('values');
+        await context.sync();
+	
+	
+	let quantityCheck2 = sheet.getRange('R1');
+        temp = sheet.getRange('T1');
+        temp.values = [[ 1 ]];
+        await context.sync();
+
+        quantityCheck2.formulas = [[ `=IF( ISNUMBER(F${uRowsIndex.rowIndex + 1}), T1*1, T1*0)` ]];
+        await context.sync();
+        quantityCheck2.load('values');
+        await context.sync();
+	
+
+	let limitTypeCheck = sheet.getRange('R1');
+        temp = sheet.getRange('T1');
+        temp.values = [[ 1 ]];
+        await context.sync();
+
+        limitTypeCheck.formulas = [[ `=IF( ISBLANK(G${uRowsIndex.rowIndex + 1}), T1*0, T1*1)` ]];
+        await context.sync();
+        limitTypeCheck.load('values');
+	await context.sync();
+
+	let limitTypeCheck2 = 1;
+	if (uRowsIndex.rowIndex > 0) {
+          const range = sheet.getRange(`G2:G${uRowsIndex.rowIndex + 1}`);
+          range.load('values');
+          await context.sync();
+          let values = range.values;
+          console.log("values: "+ values)
+
+          for (let index = 0; index < values.length; index++) {
+                if(values[index] != "Market" && values[index] != "market" && values[index] != "Limit" && values[index] != "limit" && values[index] != "Stop" && values[index] != "stop" ){
+                                limitTypeCheck2 = 0;
+                }
+          }
+        }
+
+
+	let limitPriceCheck = sheet.getRange('R1');
+        temp = sheet.getRange('T1');
+        temp.values = [[ 1 ]];
+        await context.sync();
+
+        limitPriceCheck.formulas = [[ `=IF( ISBLANK(H${uRowsIndex.rowIndex + 1}), T1*0, T1*1)` ]];
+        await context.sync();
+        limitPriceCheck.load('values');
+	await context.sync();
+
+	let limitPriceCheck2 = sheet.getRange('R1');
+        temp = sheet.getRange('T1');
+        temp.values = [[ 1 ]];
+        await context.sync();
+
+        limitPriceCheck2.formulas = [[ `=IF( ISNUMBER(F${uRowsIndex.rowIndex + 1}), T1*1, T1*0)` ]];
+        await context.sync();
+        limitPriceCheck2.load('values');
+	await context.sync();
+
+	let validCheck = sheet.getRange('R1');
+        temp = sheet.getRange('T1');
+        temp.values = [[ 1 ]];
+        await context.sync();
+
+        validCheck.formulas = [[ `=IF( ISBLANK(I${uRowsIndex.rowIndex + 1}), T1*0, T1*1)` ]];
+        await context.sync();
+        validCheck.load('values');
+	await context.sync();
+
+
+        let accCheck = sheet.getRange('R1');
+        temp = sheet.getRange('T1');
+        temp.values = [[ 1 ]];
+        await context.sync();
+
+        accCheck.formulas = [[ `=IF( ISBLANK(J${uRowsIndex.rowIndex + 1}), T1*0, T1*1)` ]];
+        await context.sync();
+        accCheck.load('values');
+	await context.sync();
+
+
+
+        let primeCheck = sheet.getRange('R1');
+        temp = sheet.getRange('T1');
+        temp.values = [[ 1 ]];
+        await context.sync();
+
+        primeCheck.formulas = [[ `=IF( ISBLANK(K${uRowsIndex.rowIndex + 1}), T1*0, T1*1)` ]];
+	await context.sync();
+        primeCheck.load('values');
+        await context.sync();
+	  
+        allowSubmit = (assetTypeCheck2 == 1 && sideCheck2 == 1 && quantityCheck2.values[0][0]  === 1 && assetTypeCheck.values[0][0]  === 1 && isinCheck.values[0][0]  === 1 && securityNameCheck.values[0][0]  === 1 && primeCheck.values[0][0] === 1 && accCheck.values[0][0] === 1 && validCheck.values[0][0] === 1 && limitTypeCheck.values[0][0] === 1 && quantityCheck.values[0][0] === 1 && currencyCheck.values[0][0] === 1 && sideCheck.values[0][0] === 1 );      
+
+        
+        this.completeObservable(observer, allowSubmit);
+      })
+      .catch(error => {
+        console.log(`Error: ${error}`);
+        throw Observable.throw(error);
+      });
+    });
+  }
+
 
   /**
    * Returns the trafde data entered in the sheet

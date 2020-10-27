@@ -16,10 +16,22 @@
             <button class="btn btn-primary px-4" type="button" (click)="newTrade()">New Trade</button>
           </div>
         </div>
+	
+	<div class="row mb-4" *ngIf="!allowUpdateOrders">
+          <div class="col-8">
+            <button class="btn btn-primary px-4" type="button" (click)="bulkTrade()">Bulk Trade</button>
+          </div>
+        </div>
 
         <div class="row mb-4" *ngIf="!allowUpdateOrders && isSendButtonVisible">
           <div class="col-8">
             <button class="btn btn-primary px-4" type="button" (click)="sendTrade()">Send Trade</button>
+          </div>
+        </div>
+
+	<div class="row mb-4" *ngIf="!allowUpdateOrders && isSendBulkButtonVisible">
+          <div class="col-8">
+            <button class="btn btn-primary px-4" type="button" (click)="sendBulkTrade()">Send Trade</button>
           </div>
         </div>
 

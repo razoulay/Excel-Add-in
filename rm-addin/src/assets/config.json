@@ -69,7 +69,13 @@
                         "host": "https://oms.fortunet.ch/backend",
                         "name": "getOrdersByStatus",
                         "method": "/getOrdersByStatus"
+                },
+		{
+                        "host": "https://oms.fortunet.ch/backend",
+                        "name": "addbulkorder",
+                        "method": "/addbulkorder"
                 }
+		
 		
 
 	]

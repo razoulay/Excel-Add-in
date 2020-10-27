@@ -156,7 +156,7 @@ class MiddlewareApi {
      * Returns agregated RM orders.
     */
     getRMOrders(userToken) {
-        console.log(`gets the user's ${userToken} orders`);
+        console.log(`gets the user ${userToken} orders`);
         const self = this;
 	
         return new Promise(function(resolve, reject) {
@@ -176,7 +176,7 @@ class MiddlewareApi {
                     pool.query(query,
                                 (error, results) => {
                                         if (error) {
-                                                console.log("Error! ")
+                                                console.log("Error in getRMOrders! ")
 						reject(error);
                                         }
                                         const successResponse = self.successResponse();
@@ -244,7 +244,7 @@ class MiddlewareApi {
             });
                     pool.connect()
                     console.log('connected');
-                    const columnsClause = ' allocations.account AS account, orders.isin AS isin, orders.security_name AS ticker, orders.op_type AS type, orders.limit_price AS price, orders.instructions AS ccy, orders.side AS side ,orders.tif AS valid, CAST(allocations.amount_ordered AS int) AS size';
+                    const columnsClause = 'orders.asset_type , allocations.account AS account, orders.isin AS isin, orders.security_name AS ticker, orders.op_type AS type, orders.limit_price AS limit, orders.instructions AS ccy, orders.side AS side ,orders.tif AS validity, CAST(allocations.amount_ordered AS int) AS size,  allocations.broker_name AS prime';
 
                     
                     
@@ -388,6 +388,89 @@ class MiddlewareApi {
                 }
         })().catch(e =>  console.error(e.stack))    	  
                 
+    });
+    }
+
+    /**
+     * Insert a new bulk order to the orders table
+     */
+
+
+    addBulkOrder(orders) {
+    // console.log(`inserts bulk orders: ${JSON.stringify(order)}`);
+    const self = this;
+    return new Promise(function(resolve, reject) {
+        const pool = new Pool({
+            connectionString: self.connectionString,
+        });
+        // console.log("entering pool")
+        var order = orders[0];
+        console.log("middleapi - order.tif: "+order);
+        (async () => {
+                // note: we don't try/catch this because if connecting throws an exception
+                // we don't need to dispose of the client (it will be undefined)
+                const client = await pool.connect()
+                try {
+                        
+			for (let i = 0; i < orders.length; i++){
+                                order = orders[i];
+				const queryText =
+                                	'INSERT INTO orders(user_token, parseketable, isin, op_type, limit_price, tif, ' +
+                                	'security_name, side, filled_name, working, amnt_left, pct_left, status, portfolio_manager, ' +
+                                	'trader_name, order_date, order_creation, last_touched, ts_order_date, settle_date, security_id, order_number, ticket_number, order_id, asset_type, instructions) ' +
+                                	'VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, ' +
+                                	'$11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26' +
+                                	') RETURNING id'
+                        	const values =
+                                        	[order.user_token,
+                                        	order.parseketable,
+                                        	order.isin,
+                                        	order.op_type,
+                                        	order.limit_price,
+                                        	order.tif,
+                                        	order.security_name,
+                                        	order.side,
+                                        	order.filled_name,
+                                        	order.working,
+                                        	order.amnt_left,
+                                        	order.pct_left,
+                                        	order.status,
+                                        	order.portfolio_manager,
+                                        	order.trader_name,
+                                        	order.order_date,
+                                        	order.order_creation,
+                                        	order.last_touched,
+                                        	order.ts_order_date,
+                                        	order.settle_date,
+                                        	order.security_id,
+                                        	order.order_number,
+                                        	order.ticket_number,
+                                        	order.order_id,
+                                        	order.asset_type,
+                                        	order.instructions
+                                		]
+
+                        	await client.query('BEGIN')
+                        	const res = await client.query(queryText, values)
+                        
+                                const insertPhotoText = 'INSERT INTO allocations(account, amount_ordered, user_token, broker_name, average_price, id) VALUES ($1, $2, $3, $4, $5, $6)'
+                                const insertPhotoValues = [order.account, order.amount_ordered, order.user_token, order.broker_name, order.average_price, res.rows[0].id]
+                                await client.query(insertPhotoText, insertPhotoValues)
+                                await client.query('COMMIT')
+                                console.log("commited "+  res.rows[0].id)
+                        }
+                } catch (e) {
+                await client.query('ROLLBACK')
+                throw e
+    		} finally {
+
+                const successResponse = self.successResponse();
+                resolve(successResponse);
+                client.release()
+
+                }
+        })().catch(e =>  console.error(e.stack))
+
     });
     }
 
@@ -716,15 +799,17 @@ class MiddlewareApi {
 
     getFilterOrdersHeader() {
         const data = [
-            'ticker',
+            'asset_type',
+	    'ticker',
             'isin',
 	    'ccy',
 	    'side',
 	    'size',
 	    'type',
-            'price',
-            'valid',
-            'account'
+            'limit',
+            'validity',
+            'account',
+	    'prime',
             
         ];
         return data;

@@ -25,6 +25,7 @@ export class DashboardComponent implements OnInit {
   loadingText: string;
   isFilterButtonVisible: boolean;
   isSendButtonVisible: boolean;
+  isSendBulkButtonVisible: boolean;
   isSelectButtonVisible: boolean;
   isExecuteButtonVisible: boolean;
   isStatusButtonVisible: boolean;
@@ -49,7 +50,8 @@ export class DashboardComponent implements OnInit {
       this.userType = userSession.userType;
       this.allowUpdateOrders = userSession.allowUpdateOrders;
       this.isFilterButtonVisible = false;
-      this.isSendButtonVisible = true;
+      this.isSendButtonVisible = false;
+      this.isSendBulkButtonVisible = true;
       this.isSelectButtonVisible = false;
       this.isExecuteButtonVisible = false;
       this.isStatusButtonVisible = false;
@@ -65,11 +67,11 @@ export class DashboardComponent implements OnInit {
 
       console.log('userType: '+ this.userType);      
       if (this.userType == 2) {
-        this.officeHelper.newTradeSheet().subscribe((result: boolean) => {
-          console.log('newTradeSheet successfully '+this.userType);
+        this.officeHelper.bulkTradeSheet().subscribe((result: boolean) => {
+          console.log('bulkTradeSheet successfully '+this.userType);
         },
         (err) => {
-          console.log('newTradeSheet failed');
+          console.log('bulkTradeSheet failed');
         });
       }
     }
@@ -265,6 +267,7 @@ export class DashboardComponent implements OnInit {
 
   getOrders() {
     this.isSendButtonVisible = false;
+    this.isSendBulkButtonVisible = false;
     this.isSelectButtonVisible = true;
     this.isExecuteButtonVisible = false;
     this.isStatusButtonVisible = true;
@@ -354,6 +357,7 @@ export class DashboardComponent implements OnInit {
   
   getRMOrders() {
     this.isSendButtonVisible = false;
+    this.isSendBulkButtonVisible = false;
     this.isSelectButtonVisible = true;
     this.isExecuteButtonVisible = false;
     this.isStatusButtonVisible = true;
@@ -441,9 +445,152 @@ export class DashboardComponent implements OnInit {
   }
 
 
+  bulkTrade() {
+    this.isSendButtonVisible = false;
+    this.isSendBulkButtonVisible = true; 
+    this.isStatusButtonVisible = false;
+    this.isSelectButtonVisible = false;
+    this.isUpdateButtonVisible = false;
+    this.isCancelButtonVisible = false;
+    this.isUpdateAllocationsVisible = false;
+
+    this.officeHelper.bulkTradeSheet().subscribe((result: boolean) => {
+      console.log('bulkTradeSheet successfully');
+    },
+    (err) => {
+      console.log('bulkTradeSheet failed');
+    });
+  }
+
+  sendBulkTrade() {
+  const self = this;
+  this.officeHelper.checkBulkTrade().subscribe((success: boolean) => {
+    if (!success) {
+      this.errorMessage = 'Please fill all fields ' +
+        '';
+      this.isError = true;
+    } else {
+	this.apiService.getUsername(this.userToken).subscribe((result: any) => {
+          this.officeHelper.getNewBulkData().subscribe((valuesRes: any) => {
+            console.log('newBulkSheet successfully');
+            if (valuesRes !== null) {
+              self.loadingText = 'Sending trades ...';
+              self.processing = true;
+              console.log("valuesRes[0]: "+ valuesRes[0] + " end");
+              console.log("valuesRes[1]: "+ valuesRes[1]);
+              let metadata = valuesRes[0];
+              let values = valuesRes[1];
+              let receivedResults = 0;
+              let totalResults = values.length;
+              var orders = [];
+	      
+	      
+
+	      for (let index = 0; index < values.length; index++) {
+                let orderData = values[index];
+		let order = new ExtendedOrder();
+                order.user_token = self.userToken;
+                order.account = orderData[9];
+                order.broker_name = orderData[10];
+                order.asset_type = orderData[0];
+                order.isin = orderData[1];
+                order.security_name = orderData[2];
+                order.op_type = orderData[6];
+                order.limit_price = orderData[7];
+		order.instructions = orderData[4];
+		order.tif = orderData[8];
+		order.side = orderData[3];
+		
+
+                console.log('dashboard.ts - sendBulkOrder  order.security name: '+ order.security_name+' '+ order.account+' '+order.tif);
+                order.portfolio_manager = result.rows[0].name;
+                order.status = 'NEW';
+		
+		if(order.side == "BUY" || order.side == "SELL" || order.side == "Buy" || order.side == "buy" || order.side == "Sell" || order.side == "sell" ||order.side == "Buy To Open" || order.side == "buy to open" ||order.side == "Buy To Close" || order.side == "buy to close" ||order.side == "sell To Open" || order.side == "sell to open" || order.side == "Sell To Close" || order.side == "sell to close" ){
+			order.side = orderData[3];
+		}
+
+		if (order.asset_type == "Bonds" || order.asset_type == "bonds"){
+                        orderData[5] = orderData[5] * 1000;
+                        order.amount_ordered = orderData[5];
+                }
+                else{
+                        order.amount_ordered = orderData[5];
+                }
+		
+		var today = new Date();
+                var dd = String(today.getDate()).padStart(2, '0');
+                var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
+                var yyyy = String(today.getFullYear());
+                var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+                var day = mm + '/' + dd + '/' + yyyy  + ' - ' + time;
+                order.order_creation = day;
+		
+		if(order.tif == 'Today' || order.tif == 'today'){
+			order.tif = mm + '/' + dd + '/' + yyyy;
+		}
+		
+		if(order.op_type == 'market' || order.op_type == 'Market' || order.op_type == 'NAV' || order.op_type == 'Nav' || order.op_type == 'nav'){
+                        order.limit_price = order.op_type;
+		}
+
+		if (order.account === null || order.account === undefined || order.account === '') {
+                  totalResults--;
+                  continue;
+                }
+                console.log("order.limit_price: "+order.limit_price) 
+		orders.push(order);
+                
+	       }
+		
+                this.apiService.addBulkOrder(orders).subscribe((result) => {
+                    console.log(`addOrder success: result = ${JSON.stringify(result)}`);
+                    
+
+                    //Send email to trader.
+                    var message = 'A new order has been recieved '
+                    var data = []
+                    data[0] = 'dchiacchiari@ffstrategies.net'
+                    data[1] = message
+                    //self.sendEmail(data)
+		    self.getRMOrders();
+                    
+		    receivedResults++;
+                    if (receivedResults >= totalResults) {
+                      this.processing = false;
+                      if (result.success !== true) {
+                        this.errorMessage = result.error;
+                        this.isError = true;
+                      }
+                    }
+                }, (err) => {
+                   console.log('addOrder failed');
+                   this.errorMessage = err.message;
+                   this.processing = false;
+                   this.isError = true;
+                });
+		
+              
+	     
+	     }  
+	    },
+            (err) => {
+              console.log('newTradeSheet failed');
+            });
+          },
+          (err) => {
+            console.log('getusername failed');
+          });
+      }
+    },
+    (err) => {
+      console.log('checkNewTrade failed');
+    });
+}			
 
   newTrade() {
     this.isSendButtonVisible = true;
+    this.isSendBulkButtonVisible = false;
     this.isStatusButtonVisible = false;
     this.isSelectButtonVisible = false;
     this.isUpdateButtonVisible = false;
@@ -542,18 +689,19 @@ export class DashboardComponent implements OnInit {
 
                 orders.push(order);
               }
+
                 this.apiService.addOrder(orders).subscribe((result) => {
                     console.log(`addOrder success: result = ${JSON.stringify(result)}`);
                     self.getRMOrders();
-		    
-		    //Send email to trader.
-		    var message = 'A new order has been recieved '
+
+                    //Send email to trader.
+                    var message = 'A new order has been recieved '
                     var data = []
                     data[0] = 'dchiacchiari@ffstrategies.net'
                     data[1] = message
-		    //self.sendEmail(data)
+                    //self.sendEmail(data)
 
-		    receivedResults++;
+                    receivedResults++;
                     if (receivedResults >= totalResults) {
                       this.processing = false;
                       if (result.success !== true) {
@@ -898,6 +1046,7 @@ updateAllocations() {       //To update quantities of allocation.
 
     this.isExecuteButtonVisible = true; 
     this.isSendButtonVisible = false;
+    this.isSendBulkButtonVisible = false;
     this.isSelectButtonVisible = false;
     this.isStatusButtonVisible = false;
     this.isUpdateButtonVisible = false;

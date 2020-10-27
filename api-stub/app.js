@@ -124,7 +124,7 @@ app.get('/orders', function(request, response){
   const api = new MiddlewareApi(configData.postgres_connection_string);
   api.getOrders(request.query.userToken)
     .then((result) => {
-      console.log('\nresult is : ' + result);
+      console.log('\nresult is 2: ' + result);
       response.send(result);
   })
   .catch((strErr) => {
@@ -140,7 +140,7 @@ app.get('/RMorders', function(request, response){
   const api = new MiddlewareApi(configData.postgres_connection_string);
   api.getRMOrders(request.query.userToken)
     .then((result) => {
-      console.log('\nresult is : ' + result);
+      console.log('\nresult is 1: ' + result);
       response.send(result);
   })
   .catch((strErr) => {
@@ -156,7 +156,23 @@ app.post('/order', function(request, response){
   const api = new MiddlewareApi(configData.postgres_connection_string);
   api.addOrder(request.body)
     .then((result) => {
-      console.log('\nresult is : ' + result);
+      console.log('\nresult is 3: ' + result);
+      response.send(result);
+  })
+  .catch((strErr) => {
+    console.error('\n!!! ERROR !!!');
+    console.error(strErr);
+    response.send(strErr);
+  });
+});
+
+app.post('/addbulkOrder', function(request, response){
+  console.log(request.body);      // your JSON
+
+  const api = new MiddlewareApi(configData.postgres_connection_string);
+  api.addBulkOrder(request.body)
+    .then((result) => {
+      console.log('\nresult is 4: ' + result);
       response.send(result);
   })
   .catch((strErr) => {
